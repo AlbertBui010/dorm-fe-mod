@@ -33,7 +33,7 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-            <img src="./public/logo/logo-stu.png" alt="STU Logo" className="mx-auto mb-4 w-28 h-28" />
+            <img src="/logo/logo-stu.png" alt="STU Logo" className="mx-auto mb-4 w-28 h-28" />
           <h1 className="text-3xl font-bold text-gray-900">Ký túc xá STU</h1>
           <p className="text-gray-600 mt-2">Đăng nhập vào hệ thống</p>
         </div>
@@ -75,7 +75,7 @@ const LoginPage = () => {
             </p>
             <div className="mt-2 text-xs space-y-1 text-gray-500">
               <div>Admin: admin / 123456</div>
-              <div>Student: student@stu.edu.vn / student123</div>
+              <div>Student: nguyenvanan@student.stu.edu.vn / 123456</div>
             </div>
           </div>
         </Card>

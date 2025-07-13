@@ -200,17 +200,17 @@ const EmployeeManagementPage = () => {
     {
       key: 'MaNhanVien',
       header: 'Mã NV',
-      render: (row) => <span className="font-mono text-sm">{row.MaNhanVien}</span>
+      render: (value, row) => <span className="font-mono text-sm">{value}</span>
     },
     {
       key: 'HoTen', 
       header: 'Họ và tên',
-      render: (row) => <span className="font-medium">{row.HoTen}</span>
+      render: (value, row) => <span className="font-medium">{value}</span>
     },
     {
       key: 'Email',
       header: 'Email',
-      render: (row) => <span className="text-blue-600">{row.Email}</span>
+      render: (value, row) => <span className="text-blue-600">{value}</span>
     },
     {
       key: 'SoDienThoai',
@@ -219,31 +219,31 @@ const EmployeeManagementPage = () => {
     {
       key: 'VaiTro',
       header: 'Vai trò',
-      render: (row) => (
+      render: (value, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.VaiTro === 'QuanTriVien' ? 'bg-red-100 text-red-800' :
-          row.VaiTro === 'QuanLy' ? 'bg-blue-100 text-blue-800' :
+          value === 'QuanTriVien' ? 'bg-red-100 text-red-800' :
+          value === 'QuanLy' ? 'bg-blue-100 text-blue-800' :
           'bg-green-100 text-green-800'
         }`}>
-          {getRoleLabel(row.VaiTro)}
+          {getRoleLabel(value)}
         </span>
       )
     },
     {
       key: 'TrangThai',
       header: 'Trạng thái',
-      render: (row) => (
+      render: (value, row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          row.TrangThai === 'HoatDong' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          value === 'HoatDong' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
         }`}>
-          {row.TrangThai === 'HoatDong' ? 'Hoạt động' : 'Đã khóa'}
+          {value === 'HoatDong' ? 'Hoạt động' : 'Đã khóa'}
         </span>
       )
     },
     {
       key: 'actions',
       header: 'Thao tác',
-      render: (row) => (
+      render: (value, row) => (
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -257,7 +257,7 @@ const EmployeeManagementPage = () => {
             variant="outline"
             onClick={() => handleToggleStatus(row)}
           >
-            {row.TrangThai === 'HoatDong' ? 
+            {row?.TrangThai === 'HoatDong' ? 
               <Lock className="w-4 h-4" /> : 
               <Unlock className="w-4 h-4" />
             }

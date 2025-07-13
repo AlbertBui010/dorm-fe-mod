@@ -32,7 +32,7 @@ const Table = ({ columns, data, className, loading, emptyMessage, ...props }) =>
                 key={index}
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                {column.header}
+                {column.title || column.header}
               </th>
             ))}
           </tr>
@@ -42,7 +42,10 @@ const Table = ({ columns, data, className, loading, emptyMessage, ...props }) =>
             <tr key={rowIndex} className="hover:bg-gray-50">
               {columns.map((column, colIndex) => (
                 <td key={colIndex} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {column.render ? column.render(row) : row[column.key]}
+                  {column.render ? 
+                    column.render(row[column.key], row) || 'N/A' : 
+                    (row[column.key] ?? 'N/A')
+                  }
                 </td>
               ))}
             </tr>

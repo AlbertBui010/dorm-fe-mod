@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ApiTestPage from './pages/ApiTestPage';
 import EmployeeManagementPage from './pages/EmployeeManagementPage';
+import RoomManagementPage from './pages/RoomManagementPage';
 import { authService } from './services/api';
 
 const ProtectedRoute = ({ children }) => {
@@ -19,7 +20,12 @@ const PublicRoute = ({ children }) => {
 
 function App() {
   return (
-    <Router>
+    <Router
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <div className="App">
         <Toaster
           position="top-right"
@@ -74,6 +80,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <EmployeeManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/rooms" 
+            element={
+              <ProtectedRoute>
+                <RoomManagementPage />
               </ProtectedRoute>
             } 
           />

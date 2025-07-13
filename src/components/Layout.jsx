@@ -47,7 +47,7 @@ const Layout = ({ children }) => {
       name: 'Quản lý Nhân viên',
       href: '/employees',
       icon: Users,
-      show: user?.VaiTro === 'Admin' || user?.VaiTro === 'Quản lý'
+      show: user?.VaiTro !== 'SinhVien' // Show for all employee accounts (Admin, Quản lý, QuanTriVien, etc.)
     },
     {
       name: 'Quản lý Sinh viên',
@@ -57,7 +57,7 @@ const Layout = ({ children }) => {
     },
     {
       name: 'Quản lý Phòng',
-      href: '/phong',
+      href: '/rooms',
       icon: Building2,
       show: user?.VaiTro !== 'SinhVien'
     }
@@ -81,7 +81,7 @@ const Layout = ({ children }) => {
       }`}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-blue-600">
-            <img src="./public/logo/logo-stu.png" alt="STU Logo" className="w-10 h-10 rounded-full" />
+          <img src="/logo/logo-stu.png" alt="STU Logo" className="w-10 h-10 rounded-full" />
           <h1 className="text-xl font-bold text-white">
             Ký túc xá STU
           </h1>

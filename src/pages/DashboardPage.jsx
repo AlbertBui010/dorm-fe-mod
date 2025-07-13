@@ -136,7 +136,7 @@ const DashboardPage = () => {
                     
                     <div 
                       className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                      onClick={() => navigateTo('/phong')}
+                      onClick={() => navigateTo('/rooms')}
                     >
                       <Home className="h-8 w-8 text-green-600 mb-2" />
                       <h3 className="font-medium text-gray-900">Quản lý Phòng</h3>

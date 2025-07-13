@@ -33,15 +33,15 @@ export const roomService = {
   },
 
   // Get room statistics
-  getStats: async () => {
-    const response = await api.get("/phong/stats");
+  getStatistics: async () => {
+    const response = await api.get("/phong/statistics");
     return response.data;
   },
 
   // Get available rooms
   getAvailable: async () => {
-    const params = { trangThai: "Hoạt động", available: true };
-    return await roomService.getAll(params);
+    const response = await api.get("/phong/available");
+    return response.data;
   },
 
   // Get room occupancy details
