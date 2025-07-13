@@ -10,7 +10,8 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronDown
+  ChevronDown,
+  GraduationCap
 } from 'lucide-react';
 import { authService } from '../services/api';
 
@@ -51,8 +52,8 @@ const Layout = ({ children }) => {
     },
     {
       name: 'Quản lý Sinh viên',
-      href: '/sinh-vien',
-      icon: Users,
+      href: '/students',
+      icon: GraduationCap,
       show: user?.VaiTro !== 'SinhVien'
     },
     {

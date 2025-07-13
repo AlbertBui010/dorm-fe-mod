@@ -46,6 +46,12 @@ export const studentService = {
     return response.data;
   },
 
+  // Check related records before deletion
+  checkRelatedRecords: async (id) => {
+    const response = await api.get(`/sinh-vien/${id}/check-related`);
+    return response.data;
+  },
+
   // Get student statistics
   getStats: async () => {
     const response = await api.get("/sinh-vien/stats");

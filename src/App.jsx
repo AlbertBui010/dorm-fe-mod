@@ -7,7 +7,7 @@ import ApiTestPage from './pages/ApiTestPage';
 import EmployeeManagementPage from './pages/EmployeeManagementPage';
 import RoomManagementPage from './pages/RoomManagementPage';
 import BedManagementPage from './pages/BedManagementPage';
-import { authService } from './services/api';
+import StudentManagementPage from './pages/StudentManagementPage';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -99,6 +99,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <BedManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/students" 
+            element={
+              <ProtectedRoute>
+                <StudentManagementPage />
               </ProtectedRoute>
             } 
           />
