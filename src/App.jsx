@@ -17,6 +17,9 @@ import SetupPasswordPage from './pages/SetupPasswordPage';
 import RegistrationCompletePage from './pages/RegistrationCompletePage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
 
+// UC8 Registration Approval Page
+import RegistrationApprovalPage from './pages/RegistrationApprovalPage';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
@@ -205,6 +208,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DonGiaDienNuocManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* UC8: Registration Approval Page */}
+          <Route 
+            path="/registration-approval" 
+            element={
+              <ProtectedRoute>
+                <RegistrationApprovalPage />
               </ProtectedRoute>
             } 
           />

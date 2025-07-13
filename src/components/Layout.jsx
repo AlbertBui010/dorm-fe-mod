@@ -11,7 +11,8 @@ import {
   Menu,
   X,
   ChevronDown,
-  GraduationCap
+  GraduationCap,
+  ClipboardCheck
 } from 'lucide-react';
 import { authService } from '../services/api';
 
@@ -67,6 +68,12 @@ const Layout = ({ children }) => {
       href: '/beds',
       icon: Building2,
       show: user?.VaiTro !== 'SinhVien'
+    },
+    {
+      name: 'Duyệt đăng ký',
+      href: '/registration-approval',
+      icon: ClipboardCheck,
+      show: user?.VaiTro !== 'SinhVien' // Cho phép tất cả admin/nhân viên
     },
     {
       name: 'Đơn giá Điện/Nước',
