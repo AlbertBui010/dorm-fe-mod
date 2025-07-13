@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import ApiTestPage from './pages/ApiTestPage';
 import EmployeeManagementPage from './pages/EmployeeManagementPage';
 import RoomManagementPage from './pages/RoomManagementPage';
+import BedManagementPage from './pages/BedManagementPage';
 import { authService } from './services/api';
 
 const ProtectedRoute = ({ children }) => {
@@ -89,6 +90,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <RoomManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/beds" 
+            element={
+              <ProtectedRoute>
+                <BedManagementPage />
               </ProtectedRoute>
             } 
           />

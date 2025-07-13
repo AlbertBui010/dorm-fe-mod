@@ -5,6 +5,7 @@ export {
   employeeService,
   studentService,
   roomService,
+  bedService,
 } from "./api/index";
 
 // Export the api instance for direct use

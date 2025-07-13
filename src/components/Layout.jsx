@@ -60,6 +60,12 @@ const Layout = ({ children }) => {
       href: '/rooms',
       icon: Building2,
       show: user?.VaiTro !== 'SinhVien'
+    },
+    {
+      name: 'Quản lý Giường',
+      href: '/beds',
+      icon: Building2,
+      show: user?.VaiTro !== 'SinhVien'
     }
   ];
 
