@@ -211,9 +211,9 @@ const RegistrationCompletePage = () => {
               </h4>
               <div className="text-sm text-gray-600 space-y-1">
                 <p><strong>Phòng Quản lý Ký túc xá</strong></p>
-                <p>Trường Đại học Sư phạm Kỹ thuật TP.HCM</p>
+                <p>Trường Đại học Công Nghệ Sài Gòn</p>
                 <p>📧 Email: ktx@stu.edu.vn</p>
-                <p>☎️ Hotline: (028) 3896 1234</p>
+                <p>☎️ Hotline: 0929812000</p>
                 <p>🏠 Địa chỉ: 1 Võ Văn Ngân, Thủ Đức, TP.HCM</p>
                 <p className="text-xs text-gray-500 mt-2">
                   Giờ làm việc: 8:00 - 17:00 (Thứ 2 - Thứ 6)

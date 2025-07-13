@@ -318,7 +318,7 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
               </div>
               <div className="flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                <span>(028) 3896 1234</span>
+                <span>0929812000</span>
               </div>
             </div>
           </div>
