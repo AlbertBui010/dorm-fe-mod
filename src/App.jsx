@@ -10,6 +10,13 @@ import BedManagementPage from './pages/BedManagementPage';
 import StudentManagementPage from './pages/StudentManagementPage';
 import DonGiaDienNuocManagementPage from './pages/DonGiaDienNuocManagementPage';
 
+// UC7 Registration Pages
+import RegisterPage from './pages/RegisterPage';
+import CheckEmailPage from './pages/CheckEmailPage';
+import SetupPasswordPage from './pages/SetupPasswordPage';
+import RegistrationCompletePage from './pages/RegistrationCompletePage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
+
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
@@ -17,7 +24,21 @@ const ProtectedRoute = ({ children }) => {
 
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('token');
-  return !token ? children : <Navigate to="/dashboard" />;
+  if (!token) return children;
+  
+  // Nếu đã đăng nhập, kiểm tra loại user để redirect đúng trang
+  const user = localStorage.getItem('user');
+  if (user) {
+    const userData = JSON.parse(user);
+    // Nếu là sinh viên (có MaSinhVien) -> chuyển đến student dashboard
+    if (userData.MaSinhVien) {
+      return <Navigate to="/student/dashboard" />;
+    }
+    // Nếu là admin/nhân viên -> chuyển đến admin dashboard
+    return <Navigate to="/dashboard" />;
+  }
+  
+  return <Navigate to="/dashboard" />;
 };
 
 function App() {
@@ -58,12 +79,78 @@ function App() {
             } 
           />
           
+          {/* UC7: Student Registration Routes (Public) */}
+          <Route 
+            path="/registration/register" 
+            element={
+              <PublicRoute>
+                <RegisterPage />
+              </PublicRoute>
+            } 
+          />
+          
+          <Route 
+            path="/registration/check-email" 
+            element={
+              <PublicRoute>
+                <CheckEmailPage />
+              </PublicRoute>
+            } 
+          />
+          
+          <Route 
+            path="/registration/setup-password" 
+            element={
+              <PublicRoute>
+                <SetupPasswordPage />
+              </PublicRoute>
+            } 
+          />
+          
+          <Route 
+            path="/registration/complete" 
+            element={
+              <PublicRoute>
+                <RegistrationCompletePage />
+              </PublicRoute>
+            } 
+          />
+          
+          {/* Alternative route names for email verification */}
+          <Route 
+            path="/verify-email" 
+            element={
+              <PublicRoute>
+                <CheckEmailPage />
+              </PublicRoute>
+            } 
+          />
+          
+          <Route 
+            path="/setup-password" 
+            element={
+              <PublicRoute>
+                <SetupPasswordPage />
+              </PublicRoute>
+            } 
+          />
+          
           {/* Protected Routes */}
           <Route 
             path="/dashboard" 
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Student Dashboard Route */}
+          <Route 
+            path="/student/dashboard" 
+            element={
+              <ProtectedRoute>
+                <StudentDashboardPage />
               </ProtectedRoute>
             } 
           />
@@ -122,13 +209,25 @@ function App() {
             } 
           />
           
-          {/* Redirect root to dashboard or login */}
+          {/* Redirect root to appropriate dashboard or register page */}
           <Route 
             path="/" 
             element={
-              localStorage.getItem('token') 
-                ? <Navigate to="/dashboard" /> 
-                : <Navigate to="/login" />
+              (() => {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                  return <Navigate to="/registration/register" />;
+                }
+                
+                const user = localStorage.getItem('user');
+                if (user) {
+                  const userData = JSON.parse(user);
+                  if (userData.MaSinhVien) {
+                    return <Navigate to="/student/dashboard" />;
+                  }
+                }
+                return <Navigate to="/dashboard" />;
+              })()
             } 
           />
           

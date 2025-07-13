@@ -1,4 +1,4 @@
-import { api } from "../api";
+import api from "../../utils/api";
 
 export const bedService = {
   // Get all beds with filtering and pagination

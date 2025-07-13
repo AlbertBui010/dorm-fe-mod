@@ -7,6 +7,7 @@ export {
   roomService,
   bedService,
   donGiaDienNuocService,
+  registrationApi,
 } from "./api/index";
 
 // Export the api instance for direct use

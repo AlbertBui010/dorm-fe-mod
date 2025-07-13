@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import Card from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
-import { authService } from '../services/api';
+import { authService } from '../services/api/authService';
 
 const LoginPage = () => {
   const [credentials, setCredentials] = useState({
@@ -21,7 +21,16 @@ const LoginPage = () => {
     try {
       const result = await authService.login(credentials);
       toast.success(result.message || 'Đăng nhập thành công!');
-      navigate('/dashboard');
+      
+      // Kiểm tra loại user để redirect đúng trang
+      const user = result.data?.user;
+      if (user && user.MaSinhVien) {
+        // Nếu là sinh viên -> chuyển đến student dashboard
+        navigate('/student/dashboard');
+      } else {
+        // Nếu là admin/nhân viên -> chuyển đến admin dashboard
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Đăng nhập thất bại!');
     } finally {
@@ -39,45 +48,50 @@ const LoginPage = () => {
         </div>
 
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <Input
-              label="Tên đăng nhập / Email"
-              type="text"
-              value={credentials.username}
-              onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
-              placeholder="Nhập tên đăng nhập hoặc email"
-              required
-            />
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <Input
+                label="Tên đăng nhập / Email"
+                type="text"
+                value={credentials.username}
+                onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+                placeholder="Nhập tên đăng nhập hoặc email"
+                required
+              />
 
-            <Input
-              label="Mật khẩu"
-              type="password"
-              value={credentials.password}
-              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-              placeholder="Nhập mật khẩu"
-              required
-            />
+              <Input
+                label="Mật khẩu"
+                type="password"
+                value={credentials.password}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                placeholder="Nhập mật khẩu"
+                required
+              />
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              loading={loading}
-              className="w-full"
-            >
-              Đăng nhập
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={loading}
+                className="w-full"
+              >
+                Đăng nhập
+              </Button>
+            </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Demo accounts:
-            </p>
-            <div className="mt-2 text-xs space-y-1 text-gray-500">
-              <div>Admin: admin / 123456</div>
-              <div>Student: nguyenvanan@student.stu.edu.vn / 123456</div>
+            {/* Registration Link */}
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Chưa có tài khoản?{' '}
+                <button
+                  onClick={() => navigate('/registration/register')}
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                >
+                  Đăng ký ở ký túc xá
+                </button>
+              </p>
             </div>
-          </div>
+          </CardContent>
         </Card>
       </div>
     </div>
