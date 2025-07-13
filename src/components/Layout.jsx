@@ -67,6 +67,12 @@ const Layout = ({ children }) => {
       href: '/beds',
       icon: Building2,
       show: user?.VaiTro !== 'SinhVien'
+    },
+    {
+      name: 'Đơn giá Điện/Nước',
+      href: '/don-gia-dien-nuoc',
+      icon: Settings,
+      show: user?.VaiTro === 'QuanTriVien' // Chỉ admin mới được quản lý đơn giá
     }
   ];
 

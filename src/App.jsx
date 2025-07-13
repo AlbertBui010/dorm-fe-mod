@@ -8,6 +8,7 @@ import EmployeeManagementPage from './pages/EmployeeManagementPage';
 import RoomManagementPage from './pages/RoomManagementPage';
 import BedManagementPage from './pages/BedManagementPage';
 import StudentManagementPage from './pages/StudentManagementPage';
+import DonGiaDienNuocManagementPage from './pages/DonGiaDienNuocManagementPage';
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -108,6 +109,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <StudentManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/don-gia-dien-nuoc" 
+            element={
+              <ProtectedRoute>
+                <DonGiaDienNuocManagementPage />
               </ProtectedRoute>
             } 
           />

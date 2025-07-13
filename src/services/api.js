@@ -6,6 +6,7 @@ export {
   studentService,
   roomService,
   bedService,
+  donGiaDienNuocService,
 } from "./api/index";
 
 // Export the api instance for direct use
