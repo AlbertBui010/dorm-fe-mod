@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Table from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
+import Pagination from '../components/ui/Pagination';
 import roomService from '../services/api/roomService';
 
 const RoomManagementPage = () => {
@@ -254,43 +255,57 @@ const RoomManagementPage = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    const numericAmount = parseFloat(amount) || 0;
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(numericAmount);
+    try {
+      const numericAmount = parseFloat(amount) || 0;
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(numericAmount);
+    } catch (error) {
+      console.error('Error formatting currency:', error, amount);
+      return `${Number(amount) || 0} VNĐ`;
+    }
   };
 
   // Get status badge
   const getStatusBadge = (status, currentCount = 0, capacity = 0) => {
-    // Ensure we have valid values
-    const safeStatus = status || 'Hoạt động';
-    const safeCurrentCount = Number(currentCount) || 0;
-    const safeCapacity = Number(capacity) || 0;
-    
-    let statusText = safeStatus;
-    let colorClass = 'bg-green-100 text-green-800';
+    try {
+      // Ensure we have valid values
+      const safeStatus = String(status || 'Hoạt động');
+      const safeCurrentCount = Number(currentCount) || 0;
+      const safeCapacity = Number(capacity) || 0;
+      
+      let statusText = safeStatus;
+      let colorClass = 'bg-green-100 text-green-800';
 
-    if (safeStatus === 'Bảo trì') {
-      colorClass = 'bg-yellow-100 text-yellow-800';
-    } else if (safeStatus === 'Đã đóng') {
-      colorClass = 'bg-red-100 text-red-800';
-    } else if (safeCurrentCount >= safeCapacity && safeCapacity > 0) {
-      statusText = 'Đầy';
-      colorClass = 'bg-red-100 text-red-800';
-    } else if (safeCurrentCount > 0) {
-      statusText = `${safeCurrentCount}/${safeCapacity}`;
-      colorClass = 'bg-blue-100 text-blue-800';
-    } else {
-      statusText = 'Trống';
-      colorClass = 'bg-green-100 text-green-800';
+      if (safeStatus === 'Bảo trì') {
+        colorClass = 'bg-yellow-100 text-yellow-800';
+      } else if (safeStatus === 'Đã đóng') {
+        colorClass = 'bg-red-100 text-red-800';
+      } else if (safeCurrentCount >= safeCapacity && safeCapacity > 0) {
+        statusText = 'Đầy';
+        colorClass = 'bg-red-100 text-red-800';
+      } else if (safeCurrentCount > 0) {
+        statusText = `${safeCurrentCount}/${safeCapacity}`;
+        colorClass = 'bg-blue-100 text-blue-800';
+      } else {
+        statusText = 'Trống';
+        colorClass = 'bg-green-100 text-green-800';
+      }
+
+      return (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+          {String(statusText)}
+        </span>
+      );
+    } catch (error) {
+      console.error('Error in getStatusBadge:', error);
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          {String(status || 'N/A')}
+        </span>
+      );
     }
-
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
-        {String(statusText)}
-      </span>
-    );
   };
 
   // Table columns
@@ -298,17 +313,17 @@ const RoomManagementPage = () => {
     {
       key: 'SoPhong',
       title: 'Số phòng',
-      render: (value) => value || 'N/A'
+      render: (value) => String(value || 'N/A')
     },
     {
       key: 'LoaiPhong', 
       title: 'Loại phòng',
-      render: (value) => value || 'N/A'
+      render: (value) => String(value || 'N/A')
     },
     {
       key: 'SucChua',
       title: 'Sức chứa',
-      render: (value) => `${value || 0} người`
+      render: (value) => `${Number(value) || 0} người`
     },
     {
       key: 'TrangThai',
@@ -318,19 +333,26 @@ const RoomManagementPage = () => {
           return getStatusBadge(value || 'Hoạt động', row?.SoLuongHienTai || 0, row?.SucChua || 0);
         } catch (error) {
           console.error('Error in status badge:', error);
-          return <span className="text-gray-500">{value || 'N/A'}</span>;
+          return <span className="text-gray-500">{String(value || 'N/A')}</span>;
         }
       }
     },
     {
       key: 'DienTich',
       title: 'Diện tích',
-      render: (value) => `${value || 0} m²`
+      render: (value) => `${Number(value) || 0} m²`
     },
     {
       key: 'GiaThueThang',
       title: 'Giá phòng',
-      render: (value) => formatCurrency(value || 0)
+      render: (value) => {
+        try {
+          return formatCurrency(value || 0);
+        } catch (error) {
+          console.error('Error formatting currency:', error);
+          return String(value || '0 VNĐ');
+        }
+      }
     },
     {
       key: 'actions',
@@ -478,36 +500,13 @@ const RoomManagementPage = () => {
             />
             
             {/* Pagination */}
-            {pagination.total > pagination.limit && (
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="text-sm text-gray-700">
-                  Hiển thị {((pagination.page - 1) * pagination.limit) + 1} đến{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} trong số{' '}
-                  {pagination.total} phòng
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                    disabled={pagination.page === 1}
-                  >
-                    Trước
-                  </Button>
-                  <span className="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded">
-                    {pagination.page}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                    disabled={pagination.page * pagination.limit >= pagination.total}
-                  >
-                    Sau
-                  </Button>
-                </div>
-              </div>
-            )}
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={Math.ceil(pagination.total / pagination.limit)}
+              onPageChange={(page) => setPagination(prev => ({ ...prev, page }))}
+              showInfo={true}
+              className="border-t border-gray-200 mt-4"
+            />
           </div>
         </Card>
       </div>

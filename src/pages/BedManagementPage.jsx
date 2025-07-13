@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+import { Plus, Search, Filter, Bed, Users, UserCheck, MapPin } from 'lucide-react';
+import Layout from '../components/Layout';
 import Card  from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Table from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
+import Pagination from '../components/ui/Pagination';
 import { bedService } from '../services/api/bedService';
 import { roomService } from '../services/api/roomService';
 import { studentService } from '../services/api/studentService';
@@ -116,10 +120,10 @@ const BedManagementPage = () => {
       setShowCreateModal(false);
       resetForm();
       fetchBeds();
-      alert('Tạo giường thành công!');
+      toast.success('Tạo giường thành công!');
     } catch (err) {
       console.error('Error creating bed:', err);
-      alert('Lỗi khi tạo giường: ' + (err.response?.data?.message || err.message));
+      toast.error('Lỗi khi tạo giường: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -130,10 +134,10 @@ const BedManagementPage = () => {
       setShowEditModal(false);
       resetForm();
       fetchBeds();
-      alert('Cập nhật giường thành công!');
+      toast.success('Cập nhật giường thành công!');
     } catch (err) {
       console.error('Error updating bed:', err);
-      alert('Lỗi khi cập nhật giường: ' + (err.response?.data?.message || err.message));
+      toast.error('Lỗi khi cập nhật giường: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -143,10 +147,10 @@ const BedManagementPage = () => {
     try {
       await bedService.deleteBed(maGiuong);
       fetchBeds();
-      alert('Xóa giường thành công!');
+      toast.success('Xóa giường thành công!');
     } catch (err) {
       console.error('Error deleting bed:', err);
-      alert('Lỗi khi xóa giường: ' + (err.response?.data?.message || err.message));
+      toast.error('Lỗi khi xóa giường: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -157,10 +161,10 @@ const BedManagementPage = () => {
       setShowAssignModal(false);
       setAssignData({ maSinhVien: '' });
       fetchBeds();
-      alert('Gán sinh viên vào giường thành công!');
+      toast.success('Gán sinh viên vào giường thành công!');
     } catch (err) {
       console.error('Error assigning student:', err);
-      alert('Lỗi khi gán sinh viên: ' + (err.response?.data?.message || err.message));
+      toast.error('Lỗi khi gán sinh viên: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -170,10 +174,10 @@ const BedManagementPage = () => {
     try {
       await bedService.removeStudentFromBed(maGiuong);
       fetchBeds();
-      alert('Gỡ sinh viên khỏi giường thành công!');
+      toast.success('Gỡ sinh viên khỏi giường thành công!');
     } catch (err) {
       console.error('Error removing student:', err);
-      alert('Lỗi khi gỡ sinh viên: ' + (err.response?.data?.message || err.message));
+      toast.error('Lỗi khi gỡ sinh viên: ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -314,68 +318,146 @@ const BedManagementPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Quản Lý Giường</h1>
-        <Button onClick={() => setShowCreateModal(true)}>
-          Thêm Giường Mới
-        </Button>
-      </div>
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-          {error}
+    <Layout>
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Quản lý giường</h1>
+          <p className="text-gray-600">Quản lý thông tin giường ở ký túc xá</p>
         </div>
-      )}
 
-      {/* Filters */}
-      <Card>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Input
-            placeholder="Tìm kiếm giường..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <select
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedRoom}
-            onChange={(e) => setSelectedRoom(e.target.value)}
-          >
-            <option value="">Tất cả phòng</option>
-            {rooms.map(room => (
-              <option key={room.MaPhong} value={room.MaPhong}>
-                {room.SoPhong} - {room.LoaiPhong}
-              </option>
-            ))}
-          </select>
-          <select
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="">Tất cả trạng thái</option>
-            <option value="available">Giường trống</option>
-            <option value="occupied">Đã có người</option>
-          </select>
-          <Button variant="outline" onClick={() => {
-            setSearchTerm('');
-            setSelectedRoom('');
-            setStatusFilter('');
-            setCurrentPage(1);
-          }}>
-            Xóa bộ lọc
-          </Button>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Tổng giường</p>
+                <p className="text-2xl font-bold text-gray-900">{beds.length}</p>
+              </div>
+              <Bed className="w-8 h-8 text-blue-500" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Giường trống</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {beds.filter(bed => !bed.DaCoNguoi).length}
+                </p>
+              </div>
+              <MapPin className="w-8 h-8 text-green-500" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Đã có người</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {beds.filter(bed => bed.DaCoNguoi).length}
+                </p>
+              </div>
+              <UserCheck className="w-8 h-8 text-red-500" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Bảo trì</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {beds.filter(bed => bed.TrangThai === 'Bảo trì').length}
+                </p>
+              </div>
+              <Bed className="w-8 h-8 text-yellow-500" />
+            </div>
+          </Card>
         </div>
-      </Card>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* Filters and Actions */}
+        <Card className="p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="flex flex-col md:flex-row gap-4 flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Tìm kiếm giường..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-full md:w-64"
+                />
+              </div>
+              
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
+              >
+                <option value="">Tất cả phòng</option>
+                {rooms.map(room => (
+                  <option key={room.MaPhong} value={room.MaPhong}>
+                    {room.SoPhong} - {room.LoaiPhong}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Tất cả trạng thái</option>
+                <option value="available">Giường trống</option>
+                <option value="occupied">Đã có người</option>
+              </select>
+            </div>
+
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Thêm giường mới
+            </Button>
+          </div>
+          
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSearchTerm('');
+                setSelectedRoom('');
+                setStatusFilter('');
+                setCurrentPage(1);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Xóa bộ lọc
+            </Button>
+          </div>
+        </Card>
 
       {/* Table */}
       <Card>
         <Table 
           data={beds} 
           columns={columns}
+          loading={loading}
+          emptyMessage="Không có giường nào"
+        />
+        
+        {/* Pagination */}
+        <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
+          showInfo={true}
+          className="border-t border-gray-200"
         />
       </Card>
 
@@ -591,7 +673,8 @@ const BedManagementPage = () => {
           </div>
         </form>
       </Modal>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
