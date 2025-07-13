@@ -8,6 +8,14 @@ export const studentService = {
     return response.data;
   },
 
+  // Get students without bed
+  getWithoutBed: async (gioiTinhPhong) => {
+    const params = gioiTinhPhong ? { gioiTinhPhong } : {};
+    const queryString = new URLSearchParams(params).toString();
+    const response = await api.get(`/sinh-vien/without-bed?${queryString}`);
+    return response.data;
+  },
+
   // Get student by ID
   getById: async (id) => {
     const response = await api.get(`/sinh-vien/${id}`);

@@ -16,6 +16,7 @@ const BedManagementPage = () => {
   const [beds, setBeds] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [students, setStudents] = useState([]);
+  const [availableStudents, setAvailableStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -34,10 +35,9 @@ const BedManagementPage = () => {
   
   // Form data
   const [formData, setFormData] = useState({
+    MaGiuong: '',
     MaPhong: '',
     SoGiuong: '',
-    ViTri: '',
-    TrangThai: 'Hoạt động',
     GhiChu: ''
   });
   
@@ -92,6 +92,15 @@ const BedManagementPage = () => {
       setStudents(response.data || []);
     } catch (err) {
       console.error('Error fetching students:', err);
+    }
+  };
+
+  const fetchAvailableStudents = async (roomType) => {
+    try {
+      const response = await studentService.getWithoutBed(roomType);
+      setAvailableStudents(response.data || []);
+    } catch (err) {
+      console.error('Error fetching available students:', err);
     }
   };
 
@@ -184,10 +193,9 @@ const BedManagementPage = () => {
   // Helper functions
   const resetForm = () => {
     setFormData({
+      MaGiuong: '',
       MaPhong: '',
       SoGiuong: '',
-      ViTri: '',
-      TrangThai: 'Hoạt động',
       GhiChu: ''
     });
     setSelectedBed(null);
@@ -196,10 +204,9 @@ const BedManagementPage = () => {
   const openEditModal = (bed) => {
     setSelectedBed(bed);
     setFormData({
+      MaGiuong: bed.MaGiuong,
       MaPhong: bed.MaPhong,
       SoGiuong: bed.SoGiuong,
-      ViTri: bed.ViTri || '',
-      TrangThai: bed.TrangThai || 'Hoạt động',
       GhiChu: bed.GhiChu || ''
     });
     setShowEditModal(true);
@@ -208,6 +215,12 @@ const BedManagementPage = () => {
   const openAssignModal = (bed) => {
     setSelectedBed(bed);
     setShowAssignModal(true);
+    // Fetch available students based on room type
+    if (bed.Phong && bed.Phong.LoaiPhong) {
+      fetchAvailableStudents(bed.Phong.LoaiPhong);
+    } else {
+      fetchAvailableStudents();
+    }
   };
 
   // Table columns
@@ -233,11 +246,6 @@ const BedManagementPage = () => {
       )
     },
     {
-      key: 'ViTri',
-      title: 'Vị Trí',
-      render: (value) => value || 'Chưa xác định'
-    },
-    {
       key: 'DaCoNguoi',
       title: 'Trạng Thái',
       render: (value, row) => (
@@ -253,19 +261,6 @@ const BedManagementPage = () => {
             </div>
           )}
         </div>
-      )
-    },
-    {
-      key: 'TrangThai',
-      title: 'Hoạt Động',
-      render: (value) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'Hoạt động' ? 'bg-blue-100 text-blue-800' :
-          value === 'Bảo trì' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {value}
-        </span>
       )
     },
     {
@@ -327,7 +322,7 @@ const BedManagementPage = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -357,17 +352,6 @@ const BedManagementPage = () => {
                 </p>
               </div>
               <UserCheck className="w-8 h-8 text-red-500" />
-            </div>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Bảo trì</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {beds.filter(bed => bed.TrangThai === 'Bảo trì').length}
-                </p>
-              </div>
-              <Bed className="w-8 h-8 text-yellow-500" />
             </div>
           </Card>
         </div>
@@ -499,28 +483,6 @@ const BedManagementPage = () => {
             required
           />
           <Input
-            label="Vị Trí"
-            name="ViTri"
-            value={formData.ViTri}
-            onChange={handleInputChange}
-            placeholder="Gần cửa sổ"
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng Thái
-            </label>
-            <select
-              name="TrangThai"
-              value={formData.TrangThai}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Hoạt động">Hoạt động</option>
-              <option value="Không hoạt động">Không hoạt động</option>
-              <option value="Bảo trì">Bảo trì</option>
-            </select>
-          </div>
-          <Input
             label="Ghi Chú"
             name="GhiChu"
             value={formData.GhiChu}
@@ -587,27 +549,6 @@ const BedManagementPage = () => {
             required
           />
           <Input
-            label="Vị Trí"
-            name="ViTri"
-            value={formData.ViTri}
-            onChange={handleInputChange}
-          />
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Trạng Thái
-            </label>
-            <select
-              name="TrangThai"
-              value={formData.TrangThai}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="Hoạt động">Hoạt động</option>
-              <option value="Không hoạt động">Không hoạt động</option>
-              <option value="Bảo trì">Bảo trì</option>
-            </select>
-          </div>
-          <Input
             label="Ghi Chú"
             name="GhiChu"
             value={formData.GhiChu}
@@ -636,9 +577,25 @@ const BedManagementPage = () => {
           setShowAssignModal(false);
           setAssignData({ maSinhVien: '' });
         }}
-        title={`Gán Sinh Viên - Giường ${selectedBed?.SoGiuong}`}
+        title={`Gán Sinh Viên - Giường ${selectedBed?.SoGiuong} (Phòng ${selectedBed?.Phong?.LoaiPhong || 'Hỗn hợp'})`}
       >
         <form onSubmit={handleAssignStudent} className="space-y-4">
+          {selectedBed?.Phong?.LoaiPhong && selectedBed.Phong.LoaiPhong !== 'Hỗn hợp' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-blue-700">
+                <strong>Lưu ý:</strong> Chỉ hiển thị sinh viên {selectedBed.Phong.LoaiPhong} chưa có giường
+              </p>
+            </div>
+          )}
+          
+          {availableStudents.length === 0 && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-4">
+              <p className="text-sm text-yellow-700">
+                Không có sinh viên phù hợp để gán vào giường này
+              </p>
+            </div>
+          )}
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Sinh Viên
@@ -651,9 +608,9 @@ const BedManagementPage = () => {
               required
             >
               <option value="">Chọn sinh viên</option>
-              {students.map(student => (
+              {availableStudents.map(student => (
                 <option key={student.MaSinhVien} value={student.MaSinhVien}>
-                  {student.MaSinhVien} - {student.HoTen}
+                  {student.MaSinhVien} - {student.HoTen} ({student.GioiTinh})
                 </option>
               ))}
             </select>
@@ -669,7 +626,9 @@ const BedManagementPage = () => {
             >
               Hủy
             </Button>
-            <Button type="submit">Gán Sinh Viên</Button>
+            <Button type="submit" disabled={availableStudents.length === 0}>
+              Gán Sinh Viên
+            </Button>
           </div>
         </form>
       </Modal>
