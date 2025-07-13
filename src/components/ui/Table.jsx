@@ -1,7 +1,27 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-const Table = ({ columns, data, className, ...props }) => {
+const Table = ({ columns, data, className, loading, emptyMessage, ...props }) => {
+  if (loading) {
+    return (
+      <div className={cn('overflow-x-auto', className)}>
+        <div className="flex justify-center items-center py-8">
+          <div className="text-gray-500">Đang tải...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className={cn('overflow-x-auto', className)}>
+        <div className="flex justify-center items-center py-8">
+          <div className="text-gray-500">{emptyMessage || 'Không có dữ liệu'}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn('overflow-x-auto', className)} {...props}>
       <table className="min-w-full divide-y divide-gray-200">

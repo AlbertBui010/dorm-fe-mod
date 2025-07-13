@@ -26,12 +26,12 @@ const EmployeeManagementPage = () => {
 
   // Form data
   const [formData, setFormData] = useState({
-    maNhanVien: '',
-    hoTen: '',
-    email: '',
-    soDienThoai: '',
-    vaiTro: 'Nhân viên',
-    trangThai: 'Hoạt động'
+    TenDangNhap: '',
+    HoTen: '',
+    Email: '',
+    SoDienThoai: '',
+    VaiTro: 'NhanVien',
+    MatKhau: ''
   });
 
   useEffect(() => {
@@ -53,8 +53,8 @@ const EmployeeManagementPage = () => {
       
       const response = await employeeService.getAll(params);
       if (response.success) {
-        setEmployees(response.data.employees || []);
-        setTotalPages(response.data.totalPages || 1);
+        setEmployees(response.data.data || []);
+        setTotalPages(response.data.pagination?.totalPages || 1);
       }
     } catch (error) {
       console.error('Error loading employees:', error);
@@ -106,7 +106,15 @@ const EmployeeManagementPage = () => {
   const handleEdit = async (e) => {
     e.preventDefault();
     try {
-      const response = await employeeService.update(selectedEmployee.id, formData);
+      const payload = {};
+      
+      if (formData.TenDangNhap) payload.TenDangNhap = formData.TenDangNhap;
+      if (formData.HoTen) payload.HoTen = formData.HoTen;
+      if (formData.Email) payload.Email = formData.Email;
+      if (formData.SoDienThoai) payload.SoDienThoai = formData.SoDienThoai;
+      if (formData.VaiTro) payload.VaiTro = formData.VaiTro;
+      
+      const response = await employeeService.update(selectedEmployee.MaNhanVien, payload);
       if (response.success) {
         setShowEditModal(false);
         resetForm();
@@ -121,7 +129,7 @@ const EmployeeManagementPage = () => {
 
   const handleDelete = async () => {
     try {
-      const response = await employeeService.delete(selectedEmployee.id);
+      const response = await employeeService.delete(selectedEmployee.MaNhanVien);
       if (response.success) {
         setShowDeleteModal(false);
         setSelectedEmployee(null);
@@ -137,11 +145,11 @@ const EmployeeManagementPage = () => {
 
   const handleToggleStatus = async (employee) => {
     try {
-      const response = await employeeService.toggleStatus(employee.id);
+      const response = await employeeService.toggleStatus(employee.MaNhanVien);
       if (response.success) {
         loadEmployees();
         loadStats();
-        toast.success(`${employee.trangThai === 'Hoạt động' ? 'Khóa' : 'Mở khóa'} nhân viên thành công`);
+        toast.success(`${employee.TrangThai === 'HoatDong' ? 'Khóa' : 'Mở khóa'} nhân viên thành công`);
       }
     } catch (error) {
       console.error('Error toggling status:', error);
@@ -151,12 +159,12 @@ const EmployeeManagementPage = () => {
 
   const resetForm = () => {
     setFormData({
-      maNhanVien: '',
-      hoTen: '',
-      email: '',
-      soDienThoai: '',
-      vaiTro: 'Nhân viên',
-      trangThai: 'Hoạt động'
+      TenDangNhap: '',
+      HoTen: '',
+      Email: '',
+      SoDienThoai: '',
+      VaiTro: 'NhanVien',
+      MatKhau: ''
     });
   };
 
@@ -168,12 +176,12 @@ const EmployeeManagementPage = () => {
   const openEditModal = (employee) => {
     setSelectedEmployee(employee);
     setFormData({
-      maNhanVien: employee.maNhanVien,
-      hoTen: employee.hoTen,
-      email: employee.email,
-      soDienThoai: employee.soDienThoai,
-      vaiTro: employee.vaiTro,
-      trangThai: employee.trangThai
+      TenDangNhap: employee.TenDangNhap,
+      HoTen: employee.HoTen,
+      Email: employee.Email,
+      SoDienThoai: employee.SoDienThoai,
+      VaiTro: employee.VaiTro,
+      MatKhau: ''
     });
     setShowEditModal(true);
   };
@@ -183,68 +191,73 @@ const EmployeeManagementPage = () => {
     setShowDeleteModal(true);
   };
 
+  const getRoleLabel = (role) => {
+    const roleObj = roles.find(r => r.value === role);
+    return roleObj ? roleObj.label : role;
+  };
+
   const columns = [
     {
-      key: 'maNhanVien',
-      title: 'Mã NV',
-      render: (value) => <span className="font-mono text-sm">{value}</span>
+      key: 'MaNhanVien',
+      header: 'Mã NV',
+      render: (row) => <span className="font-mono text-sm">{row.MaNhanVien}</span>
     },
     {
-      key: 'hoTen',
-      title: 'Họ và tên',
-      render: (value) => <span className="font-medium">{value}</span>
+      key: 'HoTen', 
+      header: 'Họ và tên',
+      render: (row) => <span className="font-medium">{row.HoTen}</span>
     },
     {
-      key: 'email',
-      title: 'Email',
-      render: (value) => <span className="text-blue-600">{value}</span>
+      key: 'Email',
+      header: 'Email',
+      render: (row) => <span className="text-blue-600">{row.Email}</span>
     },
     {
-      key: 'soDienThoai',
-      title: 'Số điện thoại'
+      key: 'SoDienThoai',
+      header: 'Số điện thoại'
     },
     {
-      key: 'vaiTro',
-      title: 'Vai trò',
-      render: (value) => (
+      key: 'VaiTro',
+      header: 'Vai trò',
+      render: (row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'Admin' ? 'bg-red-100 text-red-800' :
-          value === 'Quản lý' ? 'bg-blue-100 text-blue-800' :
+          row.VaiTro === 'QuanTriVien' ? 'bg-red-100 text-red-800' :
+          row.VaiTro === 'QuanLy' ? 'bg-blue-100 text-blue-800' :
           'bg-green-100 text-green-800'
         }`}>
-          {value}
+          {getRoleLabel(row.VaiTro)}
         </span>
       )
     },
     {
-      key: 'trangThai',
-      title: 'Trạng thái',
-      render: (value) => (
+      key: 'TrangThai',
+      header: 'Trạng thái',
+      render: (row) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'Hoạt động' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+          row.TrangThai === 'HoatDong' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
         }`}>
-          {value}
+          {row.TrangThai === 'HoatDong' ? 'Hoạt động' : 'Đã khóa'}
         </span>
       )
     },
     {
       key: 'actions',
-      title: 'Thao tác',
-      render: (_, employee) => (
+      header: 'Thao tác',
+      render: (row) => (
         <div className="flex gap-2">
           <Button
             size="sm"
             variant="outline"
-            onClick={() => openEditModal(employee)}
+            onClick={() => openEditModal(row)}
           >
             <Edit2 className="w-4 h-4" />
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => handleToggleStatus(employee)}
+            onClick={() => handleToggleStatus(row)}
           >
-            {employee.trangThai === 'Hoạt động' ? 
+            {row.TrangThai === 'HoatDong' ? 
               <Lock className="w-4 h-4" /> : 
               <Unlock className="w-4 h-4" />
             }
@@ -252,7 +265,7 @@ const EmployeeManagementPage = () => {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => openDeleteModal(employee)}
+            onClick={() => openDeleteModal(row)}
             className="text-red-600 hover:text-red-800"
           >
             <Trash2 className="w-4 h-4" />
@@ -302,7 +315,7 @@ const EmployeeManagementPage = () => {
             <UserX className="w-8 h-8 text-red-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Đã khóa</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.inactive || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.locked || 0}</p>
             </div>
           </div>
         </Card>
@@ -311,7 +324,7 @@ const EmployeeManagementPage = () => {
             <Users className="w-8 h-8 text-purple-600" />
             <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Admin</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.admins || 0}</p>
+               <p className="text-2xl font-bold text-gray-900">{stats?.roles?.[0]?.count || 0}</p>
             </div>
           </div>
         </Card>
@@ -336,7 +349,7 @@ const EmployeeManagementPage = () => {
           >
             <option value="">Tất cả vai trò</option>
             {roles.map(role => (
-              <option key={role} value={role}>{role}</option>
+              <option key={role.value} value={role.value}>{role.label}</option>
             ))}
           </select>
           <select
@@ -345,8 +358,8 @@ const EmployeeManagementPage = () => {
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Tất cả trạng thái</option>
-            <option value="Hoạt động">Hoạt động</option>
-            <option value="Đã khóa">Đã khóa</option>
+            <option value="HoatDong">Hoạt động</option>
+            <option value="Khoa">Đã khóa</option>
           </select>
           <Button variant="outline" onClick={loadEmployees}>
             Lọc
@@ -398,12 +411,24 @@ const EmployeeManagementPage = () => {
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mã nhân viên
+              Tên đăng nhập
             </label>
             <Input
-              value={formData.maNhanVien}
-              onChange={(e) => setFormData({...formData, maNhanVien: e.target.value})}
-              placeholder="Nhập mã nhân viên"
+              value={formData.TenDangNhap}
+              onChange={(e) => setFormData({...formData, TenDangNhap: e.target.value})}
+              placeholder="Nhập tên đăng nhập"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mật khẩu
+            </label>
+            <Input
+              type="password"
+              value={formData.MatKhau}
+              onChange={(e) => setFormData({...formData, MatKhau: e.target.value})}
+              placeholder="Nhập mật khẩu"
               required
             />
           </div>
@@ -412,8 +437,8 @@ const EmployeeManagementPage = () => {
               Họ và tên
             </label>
             <Input
-              value={formData.hoTen}
-              onChange={(e) => setFormData({...formData, hoTen: e.target.value})}
+              value={formData.HoTen}
+              onChange={(e) => setFormData({...formData, HoTen: e.target.value})}
               placeholder="Nhập họ và tên"
               required
             />
@@ -424,8 +449,8 @@ const EmployeeManagementPage = () => {
             </label>
             <Input
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              value={formData.Email}
+              onChange={(e) => setFormData({...formData, Email: e.target.value})}
               placeholder="Nhập email"
               required
             />
@@ -435,8 +460,8 @@ const EmployeeManagementPage = () => {
               Số điện thoại
             </label>
             <Input
-              value={formData.soDienThoai}
-              onChange={(e) => setFormData({...formData, soDienThoai: e.target.value})}
+              value={formData.SoDienThoai}
+              onChange={(e) => setFormData({...formData, SoDienThoai: e.target.value})}
               placeholder="Nhập số điện thoại"
               required
             />
@@ -446,13 +471,13 @@ const EmployeeManagementPage = () => {
               Vai trò
             </label>
             <select
-              value={formData.vaiTro}
-              onChange={(e) => setFormData({...formData, vaiTro: e.target.value})}
+              value={formData.VaiTro}
+              onChange={(e) => setFormData({...formData, VaiTro: e.target.value})}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
               {roles.map(role => (
-                <option key={role} value={role}>{role}</option>
+                <option key={role.value} value={role.value}>{role.label}</option>
               ))}
             </select>
           </div>
@@ -481,12 +506,12 @@ const EmployeeManagementPage = () => {
         <form onSubmit={handleEdit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mã nhân viên
+              Tên đăng nhập
             </label>
             <Input
-              value={formData.maNhanVien}
-              onChange={(e) => setFormData({...formData, maNhanVien: e.target.value})}
-              placeholder="Nhập mã nhân viên"
+              value={formData.TenDangNhap}
+              onChange={(e) => setFormData({...formData, TenDangNhap: e.target.value})}
+              placeholder="Nhập tên đăng nhập"
               required
             />
           </div>
@@ -495,8 +520,8 @@ const EmployeeManagementPage = () => {
               Họ và tên
             </label>
             <Input
-              value={formData.hoTen}
-              onChange={(e) => setFormData({...formData, hoTen: e.target.value})}
+              value={formData.HoTen}
+              onChange={(e) => setFormData({...formData, HoTen: e.target.value})}
               placeholder="Nhập họ và tên"
               required
             />
@@ -507,8 +532,8 @@ const EmployeeManagementPage = () => {
             </label>
             <Input
               type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              value={formData.Email}
+              onChange={(e) => setFormData({...formData, Email: e.target.value})}
               placeholder="Nhập email"
               required
             />
@@ -518,8 +543,8 @@ const EmployeeManagementPage = () => {
               Số điện thoại
             </label>
             <Input
-              value={formData.soDienThoai}
-              onChange={(e) => setFormData({...formData, soDienThoai: e.target.value})}
+              value={formData.SoDienThoai}
+              onChange={(e) => setFormData({...formData, SoDienThoai: e.target.value})}
               placeholder="Nhập số điện thoại"
               required
             />
@@ -529,13 +554,13 @@ const EmployeeManagementPage = () => {
               Vai trò
             </label>
             <select
-              value={formData.vaiTro}
-              onChange={(e) => setFormData({...formData, vaiTro: e.target.value})}
+              value={formData.VaiTro}
+              onChange={(e) => setFormData({...formData, VaiTro: e.target.value})}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
               {roles.map(role => (
-                <option key={role} value={role}>{role}</option>
+                <option key={role.value} value={role.value}>{role.label}</option>
               ))}
             </select>
           </div>
@@ -563,7 +588,7 @@ const EmployeeManagementPage = () => {
       >
         <div className="space-y-4">
           <p className="text-gray-600">
-            Bạn có chắc chắn muốn xóa nhân viên <strong>{selectedEmployee?.hoTen}</strong>?
+            Bạn có chắc chắn muốn xóa nhân viên <strong>{selectedEmployee?.HoTen}</strong>?
             Hành động này không thể hoàn tác.
           </p>
           <div className="flex gap-2">
