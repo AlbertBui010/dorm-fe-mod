@@ -10,15 +10,37 @@ import BedManagementPage from './pages/BedManagementPage';
 import StudentManagementPage from './pages/StudentManagementPage';
 import DonGiaDienNuocManagementPage from './pages/DonGiaDienNuocManagementPage';
 
-// UC7 Registration Pages
+
 import RegisterPage from './pages/RegisterPage';
 import CheckEmailPage from './pages/CheckEmailPage';
 import SetupPasswordPage from './pages/SetupPasswordPage';
 import RegistrationCompletePage from './pages/RegistrationCompletePage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
-
-// UC8 Registration Approval Page
+import StudentPaymentPage from './pages/StudentPaymentPage';
 import RegistrationApprovalPage from './pages/RegistrationApprovalPage';
+import PaymentPage from './pages/PaymentPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
+import PaymentCancelledPage from './pages/PaymentCancelledPage';
+import PaymentFailedPage from './pages/PaymentFailedPage';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+// Auto redirect handler for PayOS return URLs
+function PaymentReturnRedirect() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const status = params.get('status');
+    if (status === 'PAID') {
+      navigate('/payments/success' + location.search, { replace: true });
+    } else if (status === 'CANCELLED') {
+      navigate('/payments/cancelled' + location.search, { replace: true });
+    } else {
+      navigate('/payments/failed' + location.search, { replace: true });
+    }
+  }, [location, navigate]);
+  return null;
+}
 
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -71,7 +93,11 @@ function App() {
           }}
         />
         
-        <Routes>
+        <Routes> 
+          {/* Payment Result Pages (PayOS redirect) */}
+          <Route path="/payments/success" element={<PaymentSuccessPage />} />
+          <Route path="/payments/cancelled" element={<PaymentCancelledPage />} />
+          <Route path="/payments/failed" element={<PaymentFailedPage />} />
           {/* Public Routes */}
           <Route 
             path="/login" 
@@ -158,6 +184,16 @@ function App() {
             } 
           />
           
+          {/* Student Payment Route */}
+          <Route 
+            path="/student/payments" 
+            element={
+              <ProtectedRoute>
+                <StudentPaymentPage />
+              </ProtectedRoute>
+            } 
+          />
+          
           <Route 
             path="/api-test" 
             element={
@@ -218,6 +254,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <RegistrationApprovalPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* UC10: Payment Management Page */}
+          <Route 
+            path="/payments" 
+            element={
+              <ProtectedRoute>
+                <PaymentPage />
               </ProtectedRoute>
             } 
           />

@@ -62,4 +62,23 @@ const Modal = ({
   );
 };
 
+const ModalHeader = ({ children, className, ...props }) => (
+  <div className={cn("mb-4", className)} {...props}>
+    {children}
+  </div>
+);
+
+const ModalContent = ({ children, className, ...props }) => (
+  <div className={cn("py-4", className)} {...props}>
+    {children}
+  </div>
+);
+
+const ModalFooter = ({ children, className, ...props }) => (
+  <div className={cn("flex items-center justify-end space-x-2 pt-4 border-t", className)} {...props}>
+    {children}
+  </div>
+);
+
 export default Modal;
+export { Modal, ModalHeader, ModalContent, ModalFooter };

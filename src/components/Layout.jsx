@@ -12,7 +12,8 @@ import {
   X,
   ChevronDown,
   GraduationCap,
-  ClipboardCheck
+  ClipboardCheck,
+  CreditCard
 } from 'lucide-react';
 import { authService } from '../services/api';
 
@@ -73,6 +74,12 @@ const Layout = ({ children }) => {
       name: 'Duyệt đăng ký',
       href: '/registration-approval',
       icon: ClipboardCheck,
+      show: user?.VaiTro !== 'SinhVien' // Cho phép tất cả admin/nhân viên
+    },
+    {
+      name: 'Quản lý Thanh toán',
+      href: '/payments',
+      icon: CreditCard,
       show: user?.VaiTro !== 'SinhVien' // Cho phép tất cả admin/nhân viên
     },
     {

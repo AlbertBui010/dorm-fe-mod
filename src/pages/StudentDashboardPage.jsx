@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import RegistrationStatusCard from '../components/RegistrationStatusCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { User, LogOut, AlertTriangle, Mail, Phone } from 'lucide-react';
+import { User, LogOut, AlertTriangle, Mail, Phone, CreditCard } from 'lucide-react';
 import { authService } from '../services/api/authService';
 
 const StudentDashboardPage = () => {
@@ -171,6 +171,30 @@ const StudentDashboardPage = () => {
             profileData={profile}
             showActions={false}
           />
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Các tính năng</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button
+                  onClick={() => navigate('/student/payments')}
+                  variant="outline"
+                  className="flex items-center justify-center p-6 h-auto"
+                >
+                  <div className="text-center">
+                    <CreditCard className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                    <h3 className="font-medium text-gray-900">Thanh toán</h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Xem và thanh toán các khoản phí ký túc xá
+                    </p>
+                  </div>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
