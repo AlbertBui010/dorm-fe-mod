@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import ApiTestPage from './pages/ApiTestPage';
+import EmployeeManagementPage from './pages/EmployeeManagementPage';
 import { authService } from './services/api';
 
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +65,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <ApiTestPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/employees" 
+            element={
+              <ProtectedRoute>
+                <EmployeeManagementPage />
               </ProtectedRoute>
             } 
           />

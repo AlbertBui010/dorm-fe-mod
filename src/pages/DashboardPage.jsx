@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { User, Settings, LogOut, Users, Home } from 'lucide-react';
+import Layout from '../components/Layout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { authService } from '../services/api';
@@ -56,36 +57,8 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Home className="h-6 w-6 text-blue-600 mr-2" />
-              <h1 className="text-xl font-semibold text-gray-900">Hệ thống Ký túc xá STU</h1>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Xin chào, {user?.HoTen || user?.TenDangNhap}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center"
-              >
-                <LogOut className="h-4 w-4 mr-1" />
-                Đăng xuất
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <Layout>
+      <div className="p-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Profile Card */}
           <div className="lg:col-span-1">
@@ -143,6 +116,15 @@ const DashboardPage = () => {
                 {/* Employee Features */}
                 {user?.VaiTro !== 'SinhVien' && (
                   <>
+                    <div 
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigateTo('/employees')}
+                    >
+                      <Users className="h-8 w-8 text-purple-600 mb-2" />
+                      <h3 className="font-medium text-gray-900">Quản lý Nhân viên</h3>
+                      <p className="text-sm text-gray-600">Xem và quản lý danh sách nhân viên</p>
+                    </div>
+                    
                     <div 
                       className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => navigateTo('/sinh-vien')}
@@ -223,8 +205,8 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
