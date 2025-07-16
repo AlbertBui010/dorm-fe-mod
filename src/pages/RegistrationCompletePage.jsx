@@ -214,7 +214,7 @@ const RegistrationCompletePage = () => {
                 <p>Trường Đại học Công Nghệ Sài Gòn</p>
                 <p>📧 Email: ktx@stu.edu.vn</p>
                 <p>☎️ Hotline: 0929812000</p>
-                <p>🏠 Địa chỉ: 1 Võ Văn Ngân, Thủ Đức, TP.HCM</p>
+                <p>🏠 Địa chỉ: 180 Cao Lỗ, Phường 4, Quận 8, TP HCM</p>
                 <p className="text-xs text-gray-500 mt-2">
                   Giờ làm việc: 8:00 - 17:00 (Thứ 2 - Thứ 6)
                 </p>

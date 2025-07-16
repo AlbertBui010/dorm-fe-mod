@@ -29,7 +29,7 @@ const ElectricWaterIndexManagementPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -39,6 +39,7 @@ const ElectricWaterIndexManagementPage = () => {
   useEffect(() => {
     fetchData();
     fetchRooms();
+    // eslint-disable-next-line
   }, [pagination.page, search]);
 
   const fetchData = async () => {
@@ -49,8 +50,8 @@ const ElectricWaterIndexManagementPage = () => {
         limit: pagination.limit,
         search,
       });
-      setData(res.data || []);
-      setPagination(prev => ({ ...prev, total: res.data?.length || 0 }));
+      setData(res?.data?.data || []);
+      setPagination(prev => ({ ...prev, total: res?.data?.pagination?.total || 0, totalPages: res?.data?.pagination?.totalPages || 0 }));
     } catch (e) {
       toast.error('Lỗi tải dữ liệu');
     } finally {
@@ -161,22 +162,35 @@ const ElectricWaterIndexManagementPage = () => {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Quản lý chỉ số điện nước</h2>
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Quản lý chỉ số điện nước</h1>
+            <p className="text-gray-600">Quản lý chỉ số điện, nước cho từng phòng trong ký túc xá</p>
+          </div>
           <Button onClick={handleOpenAdd}>
-            <Plus className="w-4 h-4 mr-2 inline" /> Thêm mới
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm chỉ số mới
           </Button>
         </div>
-        <div className="mb-4 flex items-center gap-2">
-          <Input
-            placeholder="Tìm kiếm theo phòng, tháng..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
-            className="w-64"
-            prefix={<Search className="w-4 h-4 text-gray-400" />}
-          />
-        </div>
+
+        {/* Search/filter */}
+        <Card className="p-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full md:w-80">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Tìm kiếm theo tháng/năm..."
+                value={search}
+                onChange={e => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
+                className="pl-10"
+              />
+            </div>
+          </div>
+        </Card>
+
+        {/* Bảng dữ liệu */}
         <Card>
           <Table
             columns={columns}
@@ -184,78 +198,94 @@ const ElectricWaterIndexManagementPage = () => {
             loading={loading}
             emptyMessage="Không có dữ liệu chỉ số điện nước"
           />
-          <div className="mt-4">
+          <div className="p-4 border-t">
             <Pagination
               currentPage={pagination.page}
-              totalPages={Math.ceil(pagination.total / pagination.limit) || 1}
+              totalPages={pagination.totalPages}
               onPageChange={page => setPagination(p => ({ ...p, page }))}
             />
           </div>
         </Card>
-        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editing ? 'Cập nhật chỉ số' : 'Thêm chỉ số mới'}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Mã phòng */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Mã phòng</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={form.MaPhong}
-              onChange={e => setForm(f => ({ ...f, MaPhong: e.target.value }))}
-            >
-              <option value="">-- Chọn phòng --</option>
-              {rooms.map(room => (
-                <option key={room.MaPhong} value={room.MaPhong}>
-                  {room.SoPhong || room.MaPhong}
-                </option>
-              ))}
-            </select>
-            {formError.MaPhong && <p className="text-sm text-red-600">{formError.MaPhong}</p>}
-          </div>
-          {/* Tháng/Năm */}
-          <Input
-            label="Tháng/Năm"
-            type="month"
-            value={form.ThangNam}
-            onChange={e => setForm(f => ({ ...f, ThangNam: e.target.value }))}
-            error={formError.ThangNam}
-          />
-          {/* Số điện cũ */}
-          <Input
-            label="Số điện cũ"
-            type="number"
-            value={form.SoDienCu}
-            onChange={e => setForm(f => ({ ...f, SoDienCu: e.target.value }))}
-            error={formError.SoDienCu}
-          />
-          {/* Số điện mới */}
-          <Input
-            label="Số điện mới"
-            type="number"
-            value={form.SoDienMoi}
-            onChange={e => setForm(f => ({ ...f, SoDienMoi: e.target.value }))}
-            error={formError.SoDienMoi}
-          />
-          {/* Số nước cũ */}
-          <Input
-            label="Số nước cũ"
-            type="number"
-            value={form.SoNuocCu}
-            onChange={e => setForm(f => ({ ...f, SoNuocCu: e.target.value }))}
-            error={formError.SoNuocCu}
-          />
-          {/* Số nước mới */}
-          <Input
-            label="Số nước mới"
-            type="number"
-            value={form.SoNuocMoi}
-            onChange={e => setForm(f => ({ ...f, SoNuocMoi: e.target.value }))}
-            error={formError.SoNuocMoi}
-          />
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={handleCloseModal}>Hủy</Button>
-            <Button type="submit" variant="primary">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>
-          </div>
-        </form>
+
+        {/* Modal thêm/sửa */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title={editing ? 'Cập nhật chỉ số' : 'Thêm chỉ số mới'}
+        >
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Mã phòng */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mã phòng *</label>
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={form.MaPhong}
+                onChange={e => setForm(f => ({ ...f, MaPhong: e.target.value }))}
+              >
+                <option value="">-- Chọn phòng --</option>
+                {rooms.map(room => (
+                  <option key={room.MaPhong} value={room.MaPhong}>
+                    {room.SoPhong || room.MaPhong}
+                  </option>
+                ))}
+              </select>
+              {formError.MaPhong && <p className="text-sm text-red-600">{formError.MaPhong}</p>}
+            </div>
+            {/* Tháng/Năm */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tháng/Năm *</label>
+              <Input
+                type="month"
+                value={form.ThangNam}
+                onChange={e => setForm(f => ({ ...f, ThangNam: e.target.value }))}
+                error={formError.ThangNam}
+              />
+            </div>
+            {/* Số điện cũ */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Số điện cũ *</label>
+              <Input
+                type="number"
+                value={form.SoDienCu}
+                onChange={e => setForm(f => ({ ...f, SoDienCu: e.target.value }))}
+                error={formError.SoDienCu}
+              />
+            </div>
+            {/* Số điện mới */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Số điện mới *</label>
+              <Input
+                type="number"
+                value={form.SoDienMoi}
+                onChange={e => setForm(f => ({ ...f, SoDienMoi: e.target.value }))}
+                error={formError.SoDienMoi}
+              />
+            </div>
+            {/* Số nước cũ */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Số nước cũ *</label>
+              <Input
+                type="number"
+                value={form.SoNuocCu}
+                onChange={e => setForm(f => ({ ...f, SoNuocCu: e.target.value }))}
+                error={formError.SoNuocCu}
+              />
+            </div>
+            {/* Số nước mới */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Số nước mới *</label>
+              <Input
+                type="number"
+                value={form.SoNuocMoi}
+                onChange={e => setForm(f => ({ ...f, SoNuocMoi: e.target.value }))}
+                error={formError.SoNuocMoi}
+              />
+            </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={handleCloseModal}>Hủy</Button>
+              <Button type="submit" variant="primary">{editing ? 'Cập nhật' : 'Thêm mới'}</Button>
+            </div>
+          </form>
         </Modal>
       </div>
     </Layout>
