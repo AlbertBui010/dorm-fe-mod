@@ -9,6 +9,7 @@ import RoomManagementPage from './pages/RoomManagementPage';
 import BedManagementPage from './pages/BedManagementPage';
 import StudentManagementPage from './pages/StudentManagementPage';
 import DonGiaDienNuocManagementPage from './pages/DonGiaDienNuocManagementPage';
+import ElectricWaterIndexManagementPage from './pages/ElectricWaterIndexManagementPage';
 
 
 import RegisterPage from './pages/RegisterPage';
@@ -244,6 +245,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <DonGiaDienNuocManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/chi-so-dien-nuoc" 
+            element={
+              <ProtectedRoute>
+                <ElectricWaterIndexManagementPage />
               </ProtectedRoute>
             } 
           />

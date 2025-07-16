@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { AlertCircle, UserPlus, Mail, Phone, Calendar, User, CreditCard } from 'lucide-react';
 import registrationApi from '../services/api/registrationApi';
@@ -180,9 +180,7 @@ const RegisterPage = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-            <UserPlus className="h-6 w-6 text-blue-600" />
-          </div>
+            <img src="/logo/logo-stu.png" alt="STU Logo" className="mb-4 mx-auto h-28 w-28" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Đăng ký ở Ký túc xá
           </h2>

@@ -167,16 +167,6 @@ const DashboardPage = () => {
                     </div>
                   </>
                 )}
-
-                {/* API Test */}
-                <div 
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => navigateTo('/api-test')}
-                >
-                  <Settings className="h-8 w-8 text-purple-600 mb-2" />
-                  <h3 className="font-medium text-gray-900">Test API</h3>
-                  <p className="text-sm text-gray-600">Kiểm tra các API endpoints</p>
-                </div>
               </div>
             </Card>
 

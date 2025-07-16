@@ -13,7 +13,8 @@ import {
   ChevronDown,
   GraduationCap,
   ClipboardCheck,
-  CreditCard
+  CreditCard,
+  Droplets
 } from 'lucide-react';
 import { authService } from '../services/api';
 
@@ -87,6 +88,12 @@ const Layout = ({ children }) => {
       href: '/don-gia-dien-nuoc',
       icon: Settings,
       show: user?.VaiTro === 'QuanTriVien' // Chỉ admin mới được quản lý đơn giá
+    },
+    {
+      name: 'Chỉ số Điện/Nước',
+      href: '/chi-so-dien-nuoc',
+      icon: Droplets,
+      show: user?.VaiTro !== 'SinhVien'
     }
   ];
 

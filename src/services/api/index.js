@@ -7,6 +7,7 @@ import { bedService } from "./bedService";
 import donGiaDienNuocService from "./donGiaDienNuocService";
 import registrationApi from "./registrationApi";
 import { studentPaymentService } from "./studentPaymentService";
+import { chiSoDienNuocService } from "./chiSoDienNuocService";
 
 // Default exports
 export { default as authService } from "./authService";
@@ -28,6 +29,7 @@ const apiServices = {
   donGiaDienNuoc: donGiaDienNuocService,
   registration: registrationApi,
   studentPayment: studentPaymentService,
+  chiSoDienNuoc: chiSoDienNuocService,
 };
 
 export default apiServices;
