@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RegistrationStatusCard from '../components/RegistrationStatusCard';
+import RecentYeuCauChuyenPhongCard from '../components/RecentYeuCauChuyenPhongCard';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { User, LogOut, AlertTriangle, Mail, Phone, CreditCard } from 'lucide-react';
+import { User, LogOut, AlertTriangle, Mail, Phone, CreditCard, Home } from 'lucide-react';
 import { authService } from '../services/api/authService';
 
 const StudentDashboardPage = () => {
@@ -172,6 +173,11 @@ const StudentDashboardPage = () => {
             showActions={false}
           />
 
+          {/* Recent Room Transfer Requests */}
+          <RecentYeuCauChuyenPhongCard 
+            onNavigateToRequests={() => navigate('/student/yeu-cau-chuyen-phong')}
+          />
+
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -192,6 +198,8 @@ const StudentDashboardPage = () => {
                     </p>
                   </div>
                 </Button>
+                
+
               </div>
             </CardContent>
           </Card>

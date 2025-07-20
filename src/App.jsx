@@ -10,7 +10,8 @@ import BedManagementPage from './pages/BedManagementPage';
 import StudentManagementPage from './pages/StudentManagementPage';
 import DonGiaDienNuocManagementPage from './pages/DonGiaDienNuocManagementPage';
 import ElectricWaterIndexManagementPage from './pages/ElectricWaterIndexManagementPage';
-
+import YeuCauChuyenPhongManagementPage from './pages/YeuCauChuyenPhongManagementPage';
+import StudentYeuCauChuyenPhongPage from './pages/StudentYeuCauChuyenPhongPage';
 
 import RegisterPage from './pages/RegisterPage';
 import CheckEmailPage from './pages/CheckEmailPage';
@@ -264,6 +265,26 @@ function App() {
             element={
               <ProtectedRoute>
                 <RegistrationApprovalPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* UC: Yêu cầu chuyển phòng - Admin */}
+          <Route 
+            path="/yeu-cau-chuyen-phong" 
+            element={
+              <ProtectedRoute>
+                <YeuCauChuyenPhongManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* UC: Yêu cầu chuyển phòng - Student */}
+          <Route 
+            path="/student/yeu-cau-chuyen-phong" 
+            element={
+              <ProtectedRoute>
+                <StudentYeuCauChuyenPhongPage />
               </ProtectedRoute>
             } 
           />

@@ -14,7 +14,8 @@ import {
   GraduationCap,
   ClipboardCheck,
   CreditCard,
-  Droplets
+  Droplets,
+  Move
 } from 'lucide-react';
 import { authService } from '../services/api';
 
@@ -94,7 +95,19 @@ const Layout = ({ children }) => {
       href: '/chi-so-dien-nuoc',
       icon: Droplets,
       show: user?.VaiTro !== 'SinhVien'
-    }
+    },
+    {
+      name: 'Yêu cầu chuyển phòng',
+      href: '/yeu-cau-chuyen-phong',
+      icon: Move,
+      show: user?.VaiTro !== 'SinhVien'
+    },
+    {
+      name: 'Yêu cầu chuyển phòng',
+      href: '/student/yeu-cau-chuyen-phong',
+      icon: Move,
+      show: user?.VaiTro === 'SinhVien'
+    },
   ];
 
   const filteredNavigation = navigation.filter(item => item.show);

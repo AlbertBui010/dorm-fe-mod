@@ -5,6 +5,7 @@ import { User, Settings, LogOut, Users, Home } from 'lucide-react';
 import Layout from '../components/Layout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import YeuCauChuyenPhongStatsCard from '../components/YeuCauChuyenPhongStatsCard';
 import { authService } from '../services/api';
 
 const DashboardPage = () => {
@@ -142,6 +143,8 @@ const DashboardPage = () => {
                       <h3 className="font-medium text-gray-900">Quản lý Phòng</h3>
                       <p className="text-sm text-gray-600">Xem và quản lý danh sách phòng</p>
                     </div>
+                    
+
                   </>
                 )}
 
@@ -172,26 +175,7 @@ const DashboardPage = () => {
 
             {/* Stats */}
             <div className="mt-6">
-              <Card title="Thống kê nhanh">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">--</div>
-                    <div className="text-sm text-gray-600">Sinh viên</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">--</div>
-                    <div className="text-sm text-gray-600">Phòng</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">--</div>
-                    <div className="text-sm text-gray-600">Đăng ký</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-red-600">--</div>
-                    <div className="text-sm text-gray-600">Chờ duyệt</div>
-                  </div>
-                </div>
-              </Card>
+              <YeuCauChuyenPhongStatsCard />
             </div>
           </div>
         </div>
