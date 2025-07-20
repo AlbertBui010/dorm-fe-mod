@@ -56,7 +56,7 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
           text: 'Chờ duyệt',
           description: 'Đăng ký đang được xem xét'
         };
-      case 'DUYET':
+      case 'DA_DUYET':
         return {
           icon: CheckCircle,
           color: 'green',
@@ -279,7 +279,7 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
           </div>
         )}
 
-        {status.dangKy.TrangThai === 'DUYET' && (
+        {status.dangKy.TrangThai === 'DA_DUYET' && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-start">
               <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />

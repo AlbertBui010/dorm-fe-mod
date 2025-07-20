@@ -51,7 +51,7 @@ const Layout = ({ children }) => {
       name: 'Quản lý Nhân viên',
       href: '/employees',
       icon: Users,
-      show: user?.VaiTro !== 'SinhVien' // Show for all employee accounts (Admin, Quản lý, QuanTriVien, etc.)
+      show: user?.VaiTro === 'QuanTriVien' // Show for all accounts (QuanTriVien, etc.)
     },
     {
       name: 'Quản lý Sinh viên',

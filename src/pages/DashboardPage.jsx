@@ -116,14 +116,14 @@ const DashboardPage = () => {
                 {/* Employee Features */}
                 {user?.VaiTro !== 'SinhVien' && (
                   <>
-                    <div 
+                    {user?.VaiTro === 'QuanTriVien' && <div 
                       className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
                       onClick={() => navigateTo('/employees')}
                     >
                       <Users className="h-8 w-8 text-purple-600 mb-2" />
                       <h3 className="font-medium text-gray-900">Quản lý Nhân viên</h3>
                       <p className="text-sm text-gray-600">Xem và quản lý danh sách nhân viên</p>
-                    </div>
+                    </div>}
                     
                     <div 
                       className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
