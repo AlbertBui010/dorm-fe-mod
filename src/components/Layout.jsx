@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'react-hot-toast';
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import {
   Home,
   Users,
@@ -15,9 +15,10 @@ import {
   ClipboardCheck,
   CreditCard,
   Droplets,
-  Move
-} from 'lucide-react';
-import { authService } from '../services/api';
+  Move,
+  History,
+} from "lucide-react";
+import { authService } from "../services/api";
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -34,104 +35,114 @@ const Layout = ({ children }) => {
   const handleLogout = async () => {
     try {
       await authService.logout();
-      toast.success('Đăng xuất thành công');
-      navigate('/login');
+      toast.success("Đăng xuất thành công");
+      navigate("/login");
     } catch (error) {
-      toast.error('Lỗi khi đăng xuất');
+      toast.error("Lỗi khi đăng xuất");
     }
   };
 
   const navigation = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
+      name: "Dashboard",
+      href: "/dashboard",
       icon: Home,
-      show: true
+      show: true,
     },
     {
-      name: 'Quản lý Nhân viên',
-      href: '/employees',
+      name: "Quản lý Nhân viên",
+      href: "/employees",
       icon: Users,
-      show: user?.VaiTro === 'QuanTriVien' // Show for all accounts (QuanTriVien, etc.)
+      show: user?.VaiTro === "QuanTriVien", // Show for all accounts (QuanTriVien, etc.)
     },
     {
-      name: 'Quản lý Sinh viên',
-      href: '/students',
+      name: "Quản lý Sinh viên",
+      href: "/students",
       icon: GraduationCap,
-      show: user?.VaiTro !== 'SinhVien'
+      show: user?.VaiTro !== "SinhVien",
     },
     {
-      name: 'Quản lý Phòng',
-      href: '/rooms',
+      name: "Quản lý Phòng",
+      href: "/rooms",
       icon: Building2,
-      show: user?.VaiTro !== 'SinhVien'
+      show: user?.VaiTro !== "SinhVien",
     },
     {
-      name: 'Quản lý Giường',
-      href: '/beds',
+      name: "Quản lý Giường",
+      href: "/beds",
       icon: Building2,
-      show: user?.VaiTro !== 'SinhVien'
+      show: user?.VaiTro !== "SinhVien",
     },
     {
-      name: 'Duyệt đăng ký',
-      href: '/registration-approval',
+      name: "Duyệt đăng ký",
+      href: "/registration-approval",
       icon: ClipboardCheck,
-      show: user?.VaiTro !== 'SinhVien' // Cho phép tất cả admin/nhân viên
+      show: user?.VaiTro !== "SinhVien", // Cho phép tất cả admin/nhân viên
     },
     {
-      name: 'Quản lý Thanh toán',
-      href: '/payments',
+      name: "Quản lý Thanh toán",
+      href: "/payments",
       icon: CreditCard,
-      show: user?.VaiTro !== 'SinhVien' // Cho phép tất cả admin/nhân viên
+      show: user?.VaiTro !== "SinhVien", // Cho phép tất cả admin/nhân viên
     },
     {
-      name: 'Đơn giá Điện/Nước',
-      href: '/don-gia-dien-nuoc',
+      name: "Đơn giá Điện/Nước",
+      href: "/don-gia-dien-nuoc",
       icon: Settings,
-      show: user?.VaiTro === 'QuanTriVien' // Chỉ admin mới được quản lý đơn giá
+      show: user?.VaiTro === "QuanTriVien", // Chỉ admin mới được quản lý đơn giá
     },
     {
-      name: 'Chỉ số Điện/Nước',
-      href: '/chi-so-dien-nuoc',
+      name: "Chỉ số Điện/Nước",
+      href: "/chi-so-dien-nuoc",
       icon: Droplets,
-      show: user?.VaiTro !== 'SinhVien'
+      show: user?.VaiTro !== "SinhVien",
     },
     {
-      name: 'Yêu cầu chuyển phòng',
-      href: '/yeu-cau-chuyen-phong',
+      name: "Yêu cầu chuyển phòng",
+      href: "/yeu-cau-chuyen-phong",
       icon: Move,
-      show: user?.VaiTro !== 'SinhVien'
+      show: user?.VaiTro !== "SinhVien",
     },
     {
-      name: 'Yêu cầu chuyển phòng',
-      href: '/student/yeu-cau-chuyen-phong',
+      name: "Yêu cầu chuyển phòng",
+      href: "/student/yeu-cau-chuyen-phong",
       icon: Move,
-      show: user?.VaiTro === 'SinhVien'
+      show: user?.VaiTro === "SinhVien",
+    },
+    {
+      name: "Lịch sử đăng ký phòng",
+      href: "/lich-su-o-phong",
+      icon: History,
+      show: user?.VaiTro !== "SinhVien",
     },
   ];
 
-  const filteredNavigation = navigation.filter(item => item.show);
+  const filteredNavigation = navigation.filter((item) => item.show);
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200 bg-blue-600">
-          <img src="/logo/logo-stu.png" alt="STU Logo" className="w-10 h-10 rounded-full" />
-          <h1 className="text-xl font-bold text-white">
-            Ký túc xá STU
-          </h1>
+          <img
+            src="/logo/logo-stu.png"
+            alt="STU Logo"
+            className="w-10 h-10 rounded-full"
+          />
+          <h1 className="text-xl font-bold text-white">Ký túc xá STU</h1>
           <button
             className="lg:hidden text-white hover:text-gray-200"
             onClick={() => setSidebarOpen(false)}
@@ -146,15 +157,15 @@ const Layout = ({ children }) => {
             {filteredNavigation.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-              
+
               return (
                 <Link
                   key={item.name}
                   to={item.href}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -174,10 +185,10 @@ const Layout = ({ children }) => {
             </div>
             <div className="ml-3 flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.HoTen || user?.hoTen || 'Người dùng'}
+                {user?.HoTen || user?.hoTen || "Người dùng"}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user?.VaiTro || 'Chưa xác định'}
+                {user?.VaiTro || "Chưa xác định"}
               </p>
             </div>
           </div>
@@ -198,7 +209,8 @@ const Layout = ({ children }) => {
             </button>
 
             <h1 className="text-lg font-semibold text-gray-900">
-              {navigation.find(item => item.href === location.pathname)?.name || 'Dashboard'}
+              {navigation.find((item) => item.href === location.pathname)
+                ?.name || "Dashboard"}
             </h1>
 
             {/* User menu - mobile */}
@@ -217,10 +229,10 @@ const Layout = ({ children }) => {
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 ring-1 ring-black ring-opacity-5">
                   <div className="px-4 py-2 border-b border-gray-200">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {user?.HoTen || user?.hoTen || 'Người dùng'}
+                      {user?.HoTen || user?.hoTen || "Người dùng"}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {user?.VaiTro || 'Chưa xác định'}
+                      {user?.VaiTro || "Chưa xác định"}
                     </p>
                   </div>
                   <Link
@@ -251,7 +263,8 @@ const Layout = ({ children }) => {
         <header className="hidden lg:block bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-6">
             <h1 className="text-xl font-semibold text-gray-900">
-              {navigation.find(item => item.href === location.pathname)?.name || 'Dashboard'}
+              {navigation.find((item) => item.href === location.pathname)
+                ?.name || "Dashboard"}
             </h1>
 
             {/* User menu - desktop */}
@@ -265,10 +278,10 @@ const Layout = ({ children }) => {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium text-gray-900">
-                    {user?.HoTen || user?.hoTen || 'Người dùng'}
+                    {user?.HoTen || user?.hoTen || "Người dùng"}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {user?.VaiTro || 'Chưa xác định'}
+                    {user?.VaiTro || "Chưa xác định"}
                   </p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -302,9 +315,7 @@ const Layout = ({ children }) => {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 bg-gray-50 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 bg-gray-50 overflow-auto">{children}</main>
       </div>
     </div>
   );
