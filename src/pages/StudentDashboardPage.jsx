@@ -16,6 +16,7 @@ const StudentDashboardPage = () => {
     try {
       setError('');
       const result = await authService.getProfile();
+      console.log('Profile data:', result.data);
       setProfile(result.data);
     } catch (err) {
       setError(err.message);

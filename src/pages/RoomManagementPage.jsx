@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { Plus, Search, Edit2, Trash2, Eye, Filter, Building, Users, MapPin } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Eye, Filter, Building, Users, MapPin, Bed } from 'lucide-react';
 import Layout from '../components/Layout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -57,7 +57,7 @@ const RoomManagementPage = () => {
       };
 
       const response = await roomService.getAll(params);
-      
+
       if (response.success) {
         setRooms(response.data);
         setPagination(prev => ({
@@ -126,7 +126,7 @@ const RoomManagementPage = () => {
     try {
       setLoading(true);
       const response = await roomService.create(roomForm);
-      
+
       if (response.success) {
         toast.success('Tạo phòng thành công');
         setShowCreateModal(false);
@@ -148,7 +148,7 @@ const RoomManagementPage = () => {
     try {
       setLoading(true);
       const response = await roomService.update(selectedRoom.MaPhong, roomForm);
-      
+
       if (response.success) {
         toast.success('Cập nhật phòng thành công');
         setShowEditModal(false);
@@ -172,7 +172,7 @@ const RoomManagementPage = () => {
     try {
       setLoading(true);
       const response = await roomService.delete(room.MaPhong);
-      
+
       if (response.success) {
         toast.success('Xóa phòng thành công');
         loadRooms();
@@ -190,7 +190,7 @@ const RoomManagementPage = () => {
     try {
       setLoading(true);
       const response = await roomService.getById(room.MaPhong);
-      
+
       if (response.success) {
         setSelectedRoom(response.data);
         setRoomForm({
@@ -217,7 +217,7 @@ const RoomManagementPage = () => {
     try {
       setLoading(true);
       const response = await roomService.getById(room.MaPhong);
-      
+
       if (response.success) {
         setSelectedRoom(response.data);
         setShowDetailModal(true);
@@ -274,7 +274,7 @@ const RoomManagementPage = () => {
       const safeStatus = String(status || 'Hoạt động');
       const safeCurrentCount = Number(currentCount) || 0;
       const safeCapacity = Number(capacity) || 0;
-      
+
       let statusText = safeStatus;
       let colorClass = 'bg-green-100 text-green-800';
 
@@ -316,7 +316,7 @@ const RoomManagementPage = () => {
       render: (value) => String(value || 'N/A')
     },
     {
-      key: 'LoaiPhong', 
+      key: 'LoaiPhong',
       title: 'Loại phòng',
       render: (value) => String(value || 'N/A')
     },
@@ -326,15 +326,21 @@ const RoomManagementPage = () => {
       render: (value) => `${Number(value) || 0} người`
     },
     {
-      key: 'TrangThai',
-      title: 'Trạng thái',
+      key: 'SoNguoiDangO',
+      title: 'Số người đang ở',
       render: (value, row) => {
-        try {
-          return getStatusBadge(value || 'Hoạt động', row?.SoLuongHienTai || 0, row?.SucChua || 0);
-        } catch (error) {
-          console.error('Error in status badge:', error);
-          return <span className="text-gray-500">{String(value || 'N/A')}</span>;
-        }
+        const currentCount = row.Giuongs ? row.Giuongs.filter(g => g.DaCoNguoi).length : (row.SoLuongHienTai || 0);
+        const capacity = row.SucChua || 0;
+        return getStatusBadge(row.TrangThai, currentCount, capacity);
+      }
+    },
+    {
+      key: 'SoGiuongHienTai',
+      title: 'Số giường hiện tại',
+      render: (_, row) => {
+        const soGiuong = row.Giuongs ? row.Giuongs.length : 0;
+        const sucChua = row.SucChua || 0;
+        return `${soGiuong} / ${sucChua} Giường`;
       }
     },
     {
@@ -398,7 +404,7 @@ const RoomManagementPage = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -411,9 +417,26 @@ const RoomManagementPage = () => {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm font-medium text-gray-600">Tổng giường</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {rooms.reduce((total, room) => total + (room.Giuongs ? room.Giuongs.length : 0), 0)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {rooms.reduce((total, room) => total + (room.Giuongs ? room.Giuongs.filter(g => g.DaCoNguoi).length : 0), 0)} đã có người
+                </p>
+              </div>
+              <Bed className="w-8 h-8 text-purple-500" />
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Phòng trống</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {rooms.filter(r => (r?.SoLuongHienTai || 0) === 0 && (r?.TrangThai || 'Hoạt động') === 'Hoạt động').length}
+                  {rooms.filter(r => {
+                    const occupiedBeds = r.Giuongs ? r.Giuongs.filter(g => g.DaCoNguoi).length : (r?.SoLuongHienTai || 0);
+                    return occupiedBeds === 0 && (r?.TrangThai || 'Hoạt động') === 'Hoạt động';
+                  }).length}
                 </p>
               </div>
               <MapPin className="w-8 h-8 text-green-500" />
@@ -424,7 +447,10 @@ const RoomManagementPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Phòng đầy</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {rooms.filter(r => (r?.SoLuongHienTai || 0) >= (r?.SucChua || 0)).length}
+                  {rooms.filter(r => {
+                    const occupiedBeds = r.Giuongs ? r.Giuongs.filter(g => g.DaCoNguoi).length : (r?.SoLuongHienTai || 0);
+                    return occupiedBeds >= (r?.SucChua || 0);
+                  }).length}
                 </p>
               </div>
               <Users className="w-8 h-8 text-red-500" />
@@ -457,7 +483,7 @@ const RoomManagementPage = () => {
                   className="pl-10 w-full md:w-64"
                 />
               </div>
-              
+
               <select
                 value={filters.loaiPhong}
                 onChange={(e) => handleFilterChange('loaiPhong', e.target.value)}
@@ -498,7 +524,7 @@ const RoomManagementPage = () => {
               loading={loading}
               emptyMessage="Không có phòng nào"
             />
-            
+
             {/* Pagination */}
             <Pagination
               currentPage={pagination.page}
@@ -695,9 +721,9 @@ const RoomManagementPage = () => {
                 max="10"
                 error={errors.SucChua}
               />
-              {selectedRoom?.SoLuongHienTai > 0 && (
+              {selectedRoom && (selectedRoom.Giuongs ? selectedRoom.Giuongs.filter(g => g.DaCoNguoi).length : (selectedRoom.SoLuongHienTai || 0)) > 0 && (
                 <p className="mt-1 text-sm text-yellow-600">
-                  Lưu ý: Phòng hiện có {selectedRoom.SoLuongHienTai} người đang ở
+                  Lưu ý: Phòng hiện có {selectedRoom.Giuongs ? selectedRoom.Giuongs.filter(g => g.DaCoNguoi).length : (selectedRoom.SoLuongHienTai || 0)} người đang ở
                 </p>
               )}
             </div>
@@ -798,7 +824,7 @@ const RoomManagementPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Thông tin cơ bản</h3>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Số phòng:</span>
@@ -806,9 +832,8 @@ const RoomManagementPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Loại phòng:</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      selectedRoom.LoaiPhong === 'Nam' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'
-                    }`}>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${selectedRoom.LoaiPhong === 'Nam' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800'
+                      }`}>
                       {selectedRoom.LoaiPhong}
                     </span>
                   </div>
@@ -818,7 +843,11 @@ const RoomManagementPage = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Số lượng hiện tại:</span>
-                    <span className="font-medium">{selectedRoom.SoLuongHienTai || 0} người</span>
+                    <span className="font-medium">{selectedRoom.Giuongs ? selectedRoom.Giuongs.filter(g => g.DaCoNguoi).length : (selectedRoom.SoLuongHienTai || 0)} người</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Số giường hiện tại:</span>
+                    <span className="font-medium">{selectedRoom.Giuongs ? selectedRoom.Giuongs.length : 0} / {selectedRoom.SucChua}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Diện tích:</span>
@@ -828,26 +857,21 @@ const RoomManagementPage = () => {
                     <span className="text-gray-600">Giá phòng:</span>
                     <span className="font-medium">{formatCurrency(selectedRoom.GiaThueThang)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Trạng thái:</span>
-                    {getStatusBadge(selectedRoom.TrangThai, selectedRoom.SoLuongHienTai || 0, selectedRoom.SucChua)}
-                  </div>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Thông tin giường</h3>
-                
+
                 {selectedRoom.Giuongs && selectedRoom.Giuongs.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {selectedRoom.Giuongs.map((giuong) => (
                       <div
                         key={giuong.MaGiuong}
-                        className={`p-3 rounded-lg border ${
-                          giuong.DaCoNguoi
-                            ? 'bg-red-50 border-red-200'
-                            : 'bg-green-50 border-green-200'
-                        }`}
+                        className={`p-3 rounded-lg border ${giuong.DaCoNguoi
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-green-50 border-green-200'
+                          }`}
                       >
                         <div className="text-sm font-medium">
                           {giuong.SoGiuong}
