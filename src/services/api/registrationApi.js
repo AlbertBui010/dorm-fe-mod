@@ -97,6 +97,18 @@ class RegistrationAPI {
   }
 
   /**
+   * Utility: Renew contract (student self-renew)
+   */
+  async renewContract(maSinhVien) {
+    try {
+      const response = await api.post("/registration/renew", { maSinhVien });
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  /**
    * Handle API errors with user-friendly messages
    */
   handleError(error) {

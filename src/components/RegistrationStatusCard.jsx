@@ -1,29 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import Button from './ui/Button';
-import { Badge } from './ui/Badge';
-import { CheckCircle, Clock, XCircle, AlertCircle, RefreshCw, Mail, Phone, Calendar, MapPin, FileText } from 'lucide-react';
-import registrationApi from '../services/api/registrationApi';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/Card";
+import Button from "./ui/Button";
+import { Badge } from "./ui/Badge";
+import {
+  CheckCircle,
+  Clock,
+  XCircle,
+  AlertCircle,
+  RefreshCw,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  FileText,
+} from "lucide-react";
+import registrationApi from "../services/api/registrationApi";
+import { toast } from "react-hot-toast";
 
-const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = true, title = "Thông tin đăng ký ký túc xá" }) => {
+const RegistrationStatusCard = ({
+  maSinhVien,
+  profileData = null,
+  showActions = true,
+  title = "Thông tin đăng ký ký túc xá",
+}) => {
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [renewLoading, setRenewLoading] = useState(false);
+
+  // Kiểm tra hợp đồng sắp hết hạn (<=7 ngày)
+  const isExpiringSoon =
+    status?.dangKy?.NgayKetThucHopDong &&
+    (() => {
+      const end = new Date(status.dangKy.NgayKetThucHopDong);
+      const today = new Date();
+      const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+      return diff <= 7 && diff >= 0 && status.dangKy.TrangThai === "DA_DUYET";
+    })();
+
+  const handleRenew = async () => {
+    setRenewLoading(true);
+    try {
+      const result = await registrationApi.renewContract(status.maSinhVien);
+      toast.success(
+        result.message || "Đã gửi yêu cầu gia hạn, vui lòng chờ duyệt!"
+      );
+      await fetchStatus();
+    } catch (err) {
+      toast.error(err.message || "Gia hạn thất bại");
+    } finally {
+      setRenewLoading(false);
+    }
+  };
 
   const fetchStatus = async () => {
     if (!maSinhVien) return;
-    
+
     try {
-      setError('');
-      
+      setError("");
+
       // If profileData is provided, use it directly instead of API call
       if (profileData) {
         const mappedData = {
           maSinhVien: profileData.MaSinhVien,
           hoTen: profileData.HoTen,
           emailDaXacThuc: profileData.EmailDaXacThuc,
-          dangKy: profileData.dangKys && profileData.dangKys.length > 0 ? profileData.dangKys[0] : null
+          dangKy:
+            profileData.dangKys && profileData.dangKys.length > 0
+              ? profileData.dangKys[0]
+              : null,
         };
         setStatus(mappedData);
       } else {
@@ -49,33 +95,33 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
 
   const getStatusInfo = (trangThai) => {
     switch (trangThai) {
-      case 'CHO_DUYET':
+      case "CHO_DUYET":
         return {
           icon: Clock,
-          color: 'yellow',
-          text: 'Chờ duyệt',
-          description: 'Đăng ký đang được xem xét'
+          color: "yellow",
+          text: "Chờ duyệt",
+          description: "Đăng ký đang được xem xét",
         };
-      case 'DA_DUYET':
+      case "DA_DUYET":
         return {
           icon: CheckCircle,
-          color: 'green',
-          text: 'Đã duyệt',
-          description: 'Đăng ký đã được phê duyệt'
+          color: "green",
+          text: "Đã duyệt",
+          description: "Đăng ký đã được phê duyệt",
         };
-      case 'TU_CHOI':
+      case "TU_CHOI":
         return {
           icon: XCircle,
-          color: 'red',
-          text: 'Từ chối',
-          description: 'Đăng ký không được phê duyệt'
+          color: "red",
+          text: "Từ chối",
+          description: "Đăng ký không được phê duyệt",
         };
       default:
         return {
           icon: AlertCircle,
-          color: 'gray',
-          text: 'Không xác định',
-          description: 'Trạng thái không rõ'
+          color: "gray",
+          text: "Không xác định",
+          description: "Trạng thái không rõ",
         };
     }
   };
@@ -142,10 +188,14 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
         <CardContent>
           <div className="text-center py-4">
             <AlertCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-600 text-sm mb-3">Chưa có đăng ký ký túc xá</p>
+            <p className="text-gray-600 text-sm mb-3">
+              Chưa có đăng ký ký túc xá
+            </p>
             {showActions && (
               <Button
-                onClick={() => window.location.href = '/registration/register'}
+                onClick={() =>
+                  (window.location.href = "/registration/register")
+                }
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Đăng ký ngay
@@ -161,8 +211,8 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
   const StatusIcon = statusInfo.icon;
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Chưa có';
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    if (!dateString) return "Chưa có";
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   return (
@@ -190,6 +240,29 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Expiry Warning & Renew Button */}
+        {isExpiringSoon && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <AlertCircle className="h-6 w-6 text-yellow-500 mr-2" />
+              <span className="text-yellow-800 font-medium">
+                Hợp đồng của bạn sẽ hết hạn vào ngày{" "}
+                <b>{formatDate(status.dangKy.NgayKetThucHopDong)}</b>. Vui lòng
+                gia hạn để tiếp tục ở lại.
+              </span>
+            </div>
+            {showActions && (
+              <Button
+                onClick={handleRenew}
+                loading={renewLoading}
+                disabled={renewLoading}
+                className="ml-4 bg-yellow-500 hover:bg-yellow-600 text-white"
+              >
+                Gia hạn hợp đồng
+              </Button>
+            )}
+          </div>
+        )}
         {/* Main Status */}
         <div className="flex items-center space-x-3">
           <StatusIcon className={`h-8 w-8 text-${statusInfo.color}-500`} />
@@ -197,7 +270,9 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
             <div className="flex items-center space-x-2">
               <Badge variant={statusInfo.color}>{statusInfo.text}</Badge>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{statusInfo.description}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {statusInfo.description}
+            </p>
           </div>
         </div>
 
@@ -211,7 +286,9 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
             </div>
             <div>
               <span className="text-gray-500">Ngày đăng ký:</span>
-              <div className="font-medium">{formatDate(status.dangKy.NgayDangKy)}</div>
+              <div className="font-medium">
+                {formatDate(status.dangKy.NgayDangKy)}
+              </div>
             </div>
             {status.dangKy.NgayNhanPhong && (
               <div>
@@ -219,7 +296,9 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
                   <Calendar className="h-3 w-3 mr-1" />
                   Ngày nhận phòng dự kiến:
                 </span>
-                <div className="font-medium">{formatDate(status.dangKy.NgayNhanPhong)}</div>
+                <div className="font-medium">
+                  {formatDate(status.dangKy.NgayNhanPhong)}
+                </div>
               </div>
             )}
             {status.dangKy.NgayKetThucHopDong && (
@@ -228,7 +307,9 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
                   <Calendar className="h-3 w-3 mr-1" />
                   Ngày tính tiền phòng dự kiến:
                 </span>
-                <div className="font-medium">{formatDate(status.dangKy.NgayKetThucHopDong)}</div>
+                <div className="font-medium">
+                  {formatDate(status.dangKy.NgayKetThucHopDong)}
+                </div>
               </div>
             )}
             {status.dangKy.Phong && (
@@ -256,51 +337,64 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
         {/* Student Preferences */}
         {status.dangKy.NguyenVong && (
           <div>
-            <label className="text-sm font-medium text-gray-500">Nguyện vọng</label>
+            <label className="text-sm font-medium text-gray-500">
+              Nguyện vọng
+            </label>
             <div className="bg-gray-50 border rounded-lg p-3 mt-1">
-              <p className="text-gray-700 text-sm">{status.dangKy.NguyenVong}</p>
+              <p className="text-gray-700 text-sm">
+                {status.dangKy.NguyenVong}
+              </p>
             </div>
           </div>
         )}
 
         {/* Status-specific actions and information */}
-        {status.dangKy.TrangThai === 'CHO_DUYET' && (
+        {status.dangKy.TrangThai === "CHO_DUYET" && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-start">
               <Clock className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-yellow-800 mb-1">Đăng ký đang được xem xét</p>
+                <p className="font-medium text-yellow-800 mb-1">
+                  Đăng ký đang được xem xét
+                </p>
                 <p className="text-yellow-700">
-                  Phòng Quản lý Ký túc xá sẽ xem xét và phê duyệt đăng ký của bạn trong 2-3 ngày làm việc. 
-                  Bạn sẽ nhận được email thông báo kết quả.
+                  Phòng Quản lý Ký túc xá sẽ xem xét và phê duyệt đăng ký của
+                  bạn trong 2-3 ngày làm việc. Bạn sẽ nhận được email thông báo
+                  kết quả.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {status.dangKy.TrangThai === 'DA_DUYET' && (
+        {status.dangKy.TrangThai === "DA_DUYET" && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-start">
               <CheckCircle className="h-5 w-5 text-green-500 mr-2 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-green-800 mb-1">Chúc mừng! Đăng ký đã được duyệt</p>
+                <p className="font-medium text-green-800 mb-1">
+                  Chúc mừng! Đăng ký đã được duyệt
+                </p>
                 <p className="text-green-700">
-                  Vui lòng chờ thông báo về việc phân phòng và hướng dẫn làm thủ tục nhận phòng.
+                  Vui lòng chờ thông báo về việc phân phòng và hướng dẫn làm thủ
+                  tục nhận phòng.
                 </p>
               </div>
             </div>
           </div>
         )}
 
-        {status.dangKy.TrangThai === 'TU_CHOI' && (
+        {status.dangKy.TrangThai === "TU_CHOI" && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-start">
               <XCircle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-red-800 mb-1">Đăng ký không được phê duyệt</p>
+                <p className="font-medium text-red-800 mb-1">
+                  Đăng ký không được phê duyệt
+                </p>
                 <p className="text-red-700">
-                  Vui lòng liên hệ Phòng Quản lý Ký túc xá để biết thêm chi tiết và hướng dẫn.
+                  Vui lòng liên hệ Phòng Quản lý Ký túc xá để biết thêm chi tiết
+                  và hướng dẫn.
                 </p>
               </div>
             </div>
@@ -310,7 +404,9 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
         {/* Contact Information */}
         {showActions && (
           <div className="border-t pt-4">
-            <h4 className="font-medium text-gray-900 mb-2">Thông tin liên hệ</h4>
+            <h4 className="font-medium text-gray-900 mb-2">
+              Thông tin liên hệ
+            </h4>
             <div className="text-sm text-gray-600 space-y-1">
               <div className="flex items-center">
                 <Mail className="h-4 w-4 mr-2" />
