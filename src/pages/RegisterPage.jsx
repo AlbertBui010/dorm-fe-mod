@@ -55,12 +55,12 @@ const RegisterPage = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // Tính toán ngày kết thúc khi thay đổi ngày nhận phòng
     if (name === 'ngayNhanPhong') {
       calculateEndDate(value);
     }
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({
@@ -72,33 +72,33 @@ const RegisterPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     // Email validation
     if (!formData.email) {
       newErrors.email = 'Email là bắt buộc';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Email không hợp lệ';
     }
-    
+
     // Name validation
     if (!formData.hoTen) {
       newErrors.hoTen = 'Họ tên là bắt buộc';
     } else if (formData.hoTen.length < 2) {
       newErrors.hoTen = 'Họ tên phải có ít nhất 2 ký tự';
     }
-    
+
     // Phone validation (optional but if provided must be valid)
     if (formData.soDienThoai && !/^[0-9]{10,11}$/.test(formData.soDienThoai)) {
       newErrors.soDienThoai = 'Số điện thoại phải có 10-11 chữ số';
     }
-    
+
     // Student ID validation (required)
     if (!formData.maSinhVien) {
       newErrors.maSinhVien = 'Mã sinh viên là bắt buộc';
     } else if (!/^DH[0-9]{8}$/.test(formData.maSinhVien)) {
       newErrors.maSinhVien = 'Mã sinh viên phải có định dạng DH + 8 chữ số (VD: DH52107853)';
     }
-    
+
     // Birth date validation (optional but if provided must be reasonable)
     if (formData.ngaySinh) {
       const birthDate = new Date(formData.ngaySinh);
@@ -108,7 +108,7 @@ const RegisterPage = () => {
         newErrors.ngaySinh = 'Tuổi phải từ 16-50';
       }
     }
-    
+
     // Student preferences validation
     if (formData.nguyenVong && formData.nguyenVong.length > 500) {
       newErrors.nguyenVong = 'Nguyện vọng không được vượt quá 500 ký tự';
@@ -119,30 +119,30 @@ const RegisterPage = () => {
       const receiveDate = new Date(formData.ngayNhanPhong);
       const today = new Date();
       const maxDate = new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000);
-      
+
       if (receiveDate < today) {
         newErrors.ngayNhanPhong = 'Ngày nhận phòng không được trong quá khứ';
       } else if (receiveDate > maxDate) {
         newErrors.ngayNhanPhong = 'Ngày nhận phòng chỉ được chọn trong vòng 3 ngày';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       const result = await registrationApi.register(formData);
-      
+
       // Registration successful
       navigate('/registration/check-email', {
         state: {
@@ -151,7 +151,7 @@ const RegisterPage = () => {
           message: result.message
         }
       });
-      
+
     } catch (error) {
       if (error.shouldLogin && error.existingStudent) {
         // Show existing student modal
@@ -180,7 +180,7 @@ const RegisterPage = () => {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-            <img src="/logo/logo-stu.png" alt="STU Logo" className="mb-4 mx-auto h-28 w-28" />
+          <img src="/logo/logo-stu.png" alt="STU Logo" className="mb-4 mx-auto h-28 w-28" />
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Đăng ký ở Ký túc xá
           </h2>
@@ -245,9 +245,8 @@ const RegisterPage = () => {
                     autoComplete="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.email ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     placeholder="Nhập email của bạn"
                   />
                 </div>
@@ -269,9 +268,8 @@ const RegisterPage = () => {
                     type="text"
                     value={formData.hoTen}
                     onChange={handleInputChange}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.hoTen ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.hoTen ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     placeholder="Nhập họ và tên đầy đủ"
                   />
                 </div>
@@ -293,9 +291,8 @@ const RegisterPage = () => {
                     type="text"
                     value={formData.maSinhVien}
                     onChange={handleInputChange}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.maSinhVien ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.maSinhVien ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     placeholder="Nhập mã sinh viên (VD: DH52107853)"
                   />
                 </div>
@@ -320,9 +317,8 @@ const RegisterPage = () => {
                     type="date"
                     value={formData.ngaySinh}
                     onChange={handleInputChange}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.ngaySinh ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.ngaySinh ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                   />
                 </div>
                 {errors.ngaySinh && <p className="mt-1 text-sm text-red-600">{errors.ngaySinh}</p>}
@@ -361,9 +357,8 @@ const RegisterPage = () => {
                     type="tel"
                     value={formData.soDienThoai}
                     onChange={handleInputChange}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.soDienThoai ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.soDienThoai ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     placeholder="Nhập số điện thoại"
                   />
                 </div>
@@ -387,9 +382,8 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     min={new Date().toISOString().split('T')[0]}
                     max={new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                    className={`block w-full pl-10 pr-3 py-2 border ${
-                      errors.ngayNhanPhong ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`block w-full pl-10 pr-3 py-2 border ${errors.ngayNhanPhong ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                   />
                 </div>
                 {errors.ngayNhanPhong && <p className="mt-1 text-sm text-red-600">{errors.ngayNhanPhong}</p>}
@@ -399,7 +393,9 @@ const RegisterPage = () => {
                 {calculatedEndDate && (
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                     <p className="text-sm text-green-800">
-                      <strong>Ngày tính tiền phòng dự kiến:</strong> {calculatedEndDate.ngayTinhTienPhongDuKien || calculatedEndDate.ngayKetThucHopDong}
+                      <strong>Ngày tính tiền phòng dự kiến:</strong>{' '}
+                      {new Date(calculatedEndDate.ngayTinhTienPhongDuKien).toLocaleDateString("vi-VN") ||
+                        new Date(calculatedEndDate.ngayKetThucHopDong).toLocaleDateString("vi-VN")}
                     </p>
                     <p className="text-xs text-green-600 mt-1">
                       Việc đăng ký sẽ tính tiền phòng đến ngày này
@@ -424,9 +420,8 @@ const RegisterPage = () => {
                     onChange={handleInputChange}
                     rows={3}
                     maxLength={500}
-                    className={`block w-full px-3 py-2 border ${
-                      errors.nguyenVong ? 'border-red-300' : 'border-gray-300'
-                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none`}
+                    className={`block w-full px-3 py-2 border ${errors.nguyenVong ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-none`}
                     placeholder="Nhập nguyện vọng của bạn về loại phòng, khu vực ở, hoặc các yêu cầu đặc biệt khác (tối đa 500 ký tự)"
                   />
                 </div>

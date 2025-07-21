@@ -29,6 +29,7 @@ const RegistrationStatusCard = ({ maSinhVien, profileData = null, showActions = 
       } else {
         const result = await registrationApi.getRegistrationStatus(maSinhVien);
         setStatus(result.data);
+        console.log('Fetched registration status:', result.data);
       }
     } catch (err) {
       setError(err.message);
