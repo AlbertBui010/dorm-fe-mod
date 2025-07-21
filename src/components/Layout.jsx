@@ -19,6 +19,7 @@ import {
   History,
 } from "lucide-react";
 import { authService } from "../services/api";
+import registrationApprovalService from "../services/registrationApprovalService";
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,11 +27,28 @@ const Layout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
+
+    // Load pending count if user is not a student
+    if (currentUser && currentUser.VaiTro !== "SinhVien") {
+      loadPendingCount();
+    }
   }, []);
+
+  const loadPendingCount = async () => {
+    try {
+      const response = await registrationApprovalService.getRegistrationStats();
+      if (response.success) {
+        setPendingCount(response.data.totalPending || 0);
+      }
+    } catch (error) {
+      console.error("Error loading pending count:", error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -171,6 +189,11 @@ const Layout = ({ children }) => {
                 >
                   <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
                   <span className="truncate">{item.name}</span>
+                  {item.name === "Duyệt đăng ký" && pendingCount > 0 && (
+                    <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

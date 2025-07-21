@@ -15,6 +15,7 @@ class RegistrationApprovalService {
         search = "",
         gioiTinh = "",
         nguyenVong = "",
+        trangThai = "",
       } = params;
 
       const queryParams = new URLSearchParams({
@@ -23,6 +24,7 @@ class RegistrationApprovalService {
         ...(search && { search }),
         ...(gioiTinh && { gioiTinh }),
         ...(nguyenVong && { nguyenVong }),
+        ...(trangThai && { trangThai }),
       });
 
       const response = await api.get(`/registration-approval?${queryParams}`);

@@ -40,7 +40,8 @@ const RegistrationApprovalPage = () => {
   const [filters, setFilters] = useState({
     search: '',
     gioiTinh: '',
-    nguyenVong: ''
+    nguyenVong: '',
+    trangThai: ''
   });
 
   // Form states
@@ -63,10 +64,15 @@ const RegistrationApprovalPage = () => {
   const loadRegistrations = async () => {
     try {
       setLoading(true);
+      let trangThaiParam = filters.trangThai;
+      if (!trangThaiParam) {
+        trangThaiParam = 'CHO_DUYET,DA_DUYET,TU_CHOI';
+      }
       const response = await registrationApprovalService.getPendingRegistrations({
         page: currentPage,
         limit: pageSize,
-        ...filters
+        ...filters,
+        trangThai: trangThaiParam,
       });
 
       if (response.success) {
@@ -260,6 +266,34 @@ const RegistrationApprovalPage = () => {
           'Chưa xác định'
     },
     {
+      key: 'TrangThai',
+      header: 'Trạng thái',
+      render: (value) => {
+        let label = '';
+        let colorClass = '';
+        switch (value) {
+          case 'CHO_DUYET':
+            label = 'Chờ duyệt';
+            colorClass = 'bg-yellow-100 text-yellow-800';
+            break;
+          case 'DA_DUYET':
+            label = 'Đã duyệt';
+            colorClass = 'bg-green-100 text-green-800';
+            break;
+          case 'TU_CHOI':
+            label = 'Từ chối';
+            colorClass = 'bg-red-100 text-red-800';
+            break;
+          default:
+            label = value;
+            colorClass = 'bg-gray-100 text-gray-800';
+        }
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>{label}</span>
+        );
+      }
+    },
+    {
       key: 'actions',
       header: 'Thao tác',
       render: (value, row) => (
@@ -267,10 +301,10 @@ const RegistrationApprovalPage = () => {
           variant="ghost"
           size="sm"
           onClick={() => viewRegistrationDetail(row)}
-          className="text-blue-600 hover:text-blue-800"
+          className={row.TrangThai === 'CHO_DUYET' ? 'text-blue-600 hover:text-blue-800' : 'text-gray-600 hover:text-gray-800'}
         >
           <Eye className="h-4 w-4 mr-1" />
-          Xem chi tiết
+          {row.TrangThai === 'CHO_DUYET' ? 'Duyệt sinh viên' : 'Xem chi tiết'}
         </Button>
       )
     }
@@ -282,8 +316,12 @@ const RegistrationApprovalPage = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý duyệt đăng ký</h1>
-            <p className="text-gray-600">Duyệt và quản lý các đăng ký ký túc xá của sinh viên</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {filters.trangThai ? `Quản lý đăng ký - ${filters.trangThai === 'CHO_DUYET' ? 'Chờ duyệt' : filters.trangThai === 'DA_DUYET' ? 'Đã duyệt' : filters.trangThai === 'TU_CHOI' ? 'Đã từ chối' : 'Tất cả'}` : 'Quản lý duyệt đăng ký'}
+            </h1>
+            <p className="text-gray-600">
+              {filters.trangThai ? 'Xem và quản lý các đăng ký ký túc xá theo trạng thái' : 'Duyệt và quản lý các đăng ký ký túc xá của sinh viên'}
+            </p>
           </div>
         </div>        {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -330,7 +368,7 @@ const RegistrationApprovalPage = () => {
           </Card>
         </div>        {/* Filters */}
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -356,11 +394,22 @@ const RegistrationApprovalPage = () => {
               value={filters.nguyenVong}
               onChange={(e) => handleFilterChange('nguyenVong', e.target.value)}
             />
+            
+            <select
+              value={filters.trangThai}
+              onChange={(e) => handleFilterChange('trangThai', e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Tất cả trạng thái</option>
+              <option value="CHO_DUYET">Chờ duyệt</option>
+              <option value="DA_DUYET">Đã duyệt</option>
+              <option value="TU_CHOI">Đã từ chối</option>
+            </select>
 
             <Button
               variant="outline"
               onClick={() => {
-                setFilters({ search: '', gioiTinh: '', nguyenVong: '' });
+                setFilters({ search: '', gioiTinh: '', nguyenVong: '', trangThai: '' });
                 setCurrentPage(1);
               }}
             >
@@ -439,107 +488,108 @@ const RegistrationApprovalPage = () => {
               </div>
 
               {/* Available Rooms */}
-              <div>
-                <h4 className="text-base font-medium text-gray-900 mb-4">
-                  Phòng phù hợp ({availableRooms.length})
-                </h4>
-                
-                {availableRooms.length === 0 ? (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
-                    <p className="text-yellow-800 text-center">
-                      Không có phòng trống phù hợp với giới tính {selectedRegistration.GioiTinh}
-                    </p>
+              {selectedRegistration.TrangThai === 'CHO_DUYET' ? (
+                <>
+                  {/* Phòng phù hợp */}
+                  <div>
+                    <h4 className="text-base font-medium text-gray-900 mb-4">
+                      Phòng phù hợp ({availableRooms.length})
+                    </h4>
+                    {availableRooms.length === 0 ? (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-md p-6">
+                        <p className="text-yellow-800 text-center">
+                          Không có phòng trống phù hợp với giới tính {selectedRegistration.GioiTinh}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {availableRooms.map((room) => (
+                          <Card key={room.MaPhong} className="p-6">
+                            <div className="mb-4">
+                              <h5 className="font-medium text-lg text-gray-900 mb-2">Phòng {room.SoPhong}</h5>
+                              <p className="text-sm text-gray-600 mb-1">
+                                {room.LoaiPhong} • {room.SucChua} giường • {room.availableBeds} trống
+                              </p>
+                              <p className="text-sm text-indigo-600 font-medium">
+                                {parseFloat(room.GiaThueThang).toLocaleString('vi-VN')} VNĐ/tháng
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-700 mb-3">Giường trống:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {room.emptyBedDetails?.map((bed) => (
+                                  <Button
+                                    key={bed.MaGiuong}
+                                    variant={approvalForm.maGiuong === bed.MaGiuong ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => selectRoomAndBed(room, bed)}
+                                  >
+                                    Giường {bed.SoGiuong}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {availableRooms.map((room) => (
-                      <Card key={room.MaPhong} className="p-6">
-                        <div className="mb-4">
-                          <h5 className="font-medium text-lg text-gray-900 mb-2">Phòng {room.SoPhong}</h5>
-                          <p className="text-sm text-gray-600 mb-1">
-                            {room.LoaiPhong} • {room.SucChua} giường • {room.availableBeds} trống
-                          </p>
-                          <p className="text-sm text-indigo-600 font-medium">
-                            {parseFloat(room.GiaThueThang).toLocaleString('vi-VN')} VNĐ/tháng
-                          </p>
-                        </div>
-                        
-                        <div>
-                          <p className="text-sm font-medium text-gray-700 mb-3">Giường trống:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {room.emptyBedDetails?.map((bed) => (
-                              <Button
-                                key={bed.MaGiuong}
-                                variant={approvalForm.maGiuong === bed.MaGiuong ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => selectRoomAndBed(room, bed)}
-                              >
-                                Giường {bed.SoGiuong}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+                  {/* Approval Form */}
+                  {availableRooms.length > 0 && (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-6">
+                      <h4 className="text-base font-medium text-green-900 mb-4">
+                        Duyệt đăng ký
+                      </h4>
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Ghi chú (tùy chọn)
+                        </label>
+                        <textarea
+                          value={approvalForm.ghiChu}
+                          onChange={(e) => setApprovalForm(prev => ({ ...prev, ghiChu: e.target.value }))}
+                          placeholder="Nhập ghi chú nếu cần..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm resize-none"
+                          rows="3"
+                        />
+                      </div>
+                      <Button
+                        onClick={approveRegistration}
+                        disabled={!approvalForm.maPhong || !approvalForm.maGiuong || loading}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        {loading ? 'Đang xử lý...' : 'Duyệt đăng ký'}
+                      </Button>
+                    </div>
+                  )}
+                  {/* Reject Form */}
+                  <div className="bg-red-50 border border-red-200 rounded-md p-6">
+                    <h4 className="text-base font-medium text-red-900 mb-4">
+                      Từ chối đăng ký
+                    </h4>
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Lý do từ chối *
+                      </label>
+                      <textarea
+                        value={rejectForm.lyDoTuChoi}
+                        onChange={(e) => setRejectForm(prev => ({ ...prev, lyDoTuChoi: e.target.value }))}
+                        placeholder="Nhập lý do từ chối đăng ký..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm resize-none"
+                        rows="3"
+                        required
+                      />
+                    </div>
+                    <Button
+                      onClick={rejectRegistration}
+                      disabled={!rejectForm.lyDoTuChoi.trim() || loading}
+                      variant="destructive"
+                      className="w-full"
+                    >
+                      {loading ? 'Đang xử lý...' : 'Từ chối đăng ký'}
+                    </Button>
                   </div>
-                )}
-              </div>
-
-              {/* Approval Form */}
-              {availableRooms.length > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-md p-6">
-                  <h4 className="text-base font-medium text-green-900 mb-4">
-                    Duyệt đăng ký
-                  </h4>
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Ghi chú (tùy chọn)
-                    </label>
-                    <textarea
-                      value={approvalForm.ghiChu}
-                      onChange={(e) => setApprovalForm(prev => ({ ...prev, ghiChu: e.target.value }))}
-                      placeholder="Nhập ghi chú nếu cần..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 text-sm resize-none"
-                      rows="3"
-                    />
-                  </div>
-                  <Button
-                    onClick={approveRegistration}
-                    disabled={!approvalForm.maPhong || !approvalForm.maGiuong || loading}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    {loading ? 'Đang xử lý...' : 'Duyệt đăng ký'}
-                  </Button>
-                </div>
-              )}
-
-              {/* Reject Form */}
-              <div className="bg-red-50 border border-red-200 rounded-md p-6">
-                <h4 className="text-base font-medium text-red-900 mb-4">
-                  Từ chối đăng ký
-                </h4>
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Lý do từ chối *
-                  </label>
-                  <textarea
-                    value={rejectForm.lyDoTuChoi}
-                    onChange={(e) => setRejectForm(prev => ({ ...prev, lyDoTuChoi: e.target.value }))}
-                    placeholder="Nhập lý do từ chối đăng ký..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-red-500 focus:border-red-500 text-sm resize-none"
-                    rows="3"
-                    required
-                  />
-                </div>
-                <Button
-                  onClick={rejectRegistration}
-                  disabled={!rejectForm.lyDoTuChoi.trim() || loading}
-                  variant="destructive"
-                  className="w-full"
-                >
-                  {loading ? 'Đang xử lý...' : 'Từ chối đăng ký'}
-                </Button>
-              </div>
+                </>
+              ) : null}
             </div>
           )}
         </Modal>

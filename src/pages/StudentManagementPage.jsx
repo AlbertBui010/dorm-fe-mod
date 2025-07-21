@@ -290,15 +290,46 @@ const StudentManagementPage = () => {
     {
       key: 'TrangThai',
       header: 'Trạng thái',
-      render: (value, row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'HoatDong' 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {value === 'HoatDong' ? 'Hoạt động' : 'Không hoạt động'}
-        </span>
-      )
+      render: (value, row) => {
+        let label = '';
+        let colorClass = '';
+
+        switch (value) {
+          case 'DANG_O':
+            label = 'Đang ở';
+            colorClass = 'bg-green-100 text-green-800';
+            break;
+          case 'NGUNG_O':
+            label = 'Ngưng ở';
+            colorClass = 'bg-red-100 text-red-800';
+            break;
+          case 'CHO_DUYET':
+            label = 'Chờ duyệt';
+            colorClass = 'bg-yellow-100 text-yellow-800';
+            break;
+          case 'DANG_KY':
+            label = 'Đăng ký mới';
+            colorClass = 'bg-blue-100 text-blue-800';
+            break;
+          case 'HoatDong':
+            label = 'Hoạt động';
+            colorClass = 'bg-green-100 text-green-800';
+            break;
+          case 'KhongHoatDong':
+            label = 'Không hoạt động';
+            colorClass = 'bg-red-100 text-red-800';
+            break;
+          default:
+            label = value;
+            colorClass = 'bg-gray-100 text-gray-800';
+        }
+
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+            {label}
+          </span>
+        );
+      }
     },
     {
       key: 'actions',
@@ -430,6 +461,10 @@ const StudentManagementPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
+              <option value="DANG_O">Đang ở</option>
+              <option value="NGUNG_O">Ngưng ở</option>
+              <option value="CHO_DUYET">Chờ duyệt</option>
+              <option value="DANG_KY">Đăng ký mới</option>
               <option value="HoatDong">Hoạt động</option>
               <option value="KhongHoatDong">Không hoạt động</option>
             </select>
