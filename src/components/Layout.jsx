@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Home,
@@ -21,7 +21,7 @@ import {
 import { authService } from "../services/api";
 import registrationApprovalService from "../services/registrationApprovalService";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, navigation: navigationProp }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
@@ -60,7 +60,8 @@ const Layout = ({ children }) => {
     }
   };
 
-  const navigation = [
+  // Nếu truyền navigation từ ngoài vào thì dùng, không thì dùng mặc định
+  const defaultNavigation = [
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -71,7 +72,7 @@ const Layout = ({ children }) => {
       name: "Quản lý Nhân viên",
       href: "/employees",
       icon: Users,
-      show: user?.VaiTro === "QuanTriVien", // Show for all accounts (QuanTriVien, etc.)
+      show: user?.VaiTro === "QuanTriVien",
     },
     {
       name: "Quản lý Sinh viên",
@@ -95,19 +96,19 @@ const Layout = ({ children }) => {
       name: "Duyệt đăng ký",
       href: "/registration-approval",
       icon: ClipboardCheck,
-      show: user?.VaiTro !== "SinhVien", // Cho phép tất cả admin/nhân viên
+      show: user?.VaiTro !== "SinhVien",
     },
     {
       name: "Quản lý Thanh toán",
       href: "/payments",
       icon: CreditCard,
-      show: user?.VaiTro !== "SinhVien", // Cho phép tất cả admin/nhân viên
+      show: user?.VaiTro !== "SinhVien",
     },
     {
       name: "Đơn giá Điện/Nước",
       href: "/don-gia-dien-nuoc",
       icon: Settings,
-      show: user?.VaiTro === "QuanTriVien", // Chỉ admin mới được quản lý đơn giá
+      show: user?.VaiTro === "QuanTriVien",
     },
     {
       name: "Chỉ số Điện/Nước",
@@ -134,7 +135,7 @@ const Layout = ({ children }) => {
       show: user?.VaiTro !== "SinhVien",
     },
   ];
-
+  const navigation = navigationProp || defaultNavigation;
   const filteredNavigation = navigation.filter((item) => item.show);
 
   return (
@@ -175,26 +176,36 @@ const Layout = ({ children }) => {
             {filteredNavigation.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
-
               return (
-                <Link
+                <button
                   key={item.name}
-                  to={item.href}
-                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
+                  type="button"
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150 text-left ${
                     isActive
                       ? "bg-blue-100 text-blue-700"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setSidebarOpen(false);
+                    if (!isActive) navigate(item.href);
+                  }}
                 >
                   <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
                   <span className="truncate">{item.name}</span>
+                  {/* Badge cho mục sidebar nếu có */}
+                  {item.badge && (
+                    <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">
+                      {item.badge > 99 ? "99+" : item.badge}
+                    </span>
+                  )}
+                  {/* Badge cũ cho Duyệt đăng ký */}
                   {item.name === "Duyệt đăng ký" && pendingCount > 0 && (
                     <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">
                       {pendingCount > 99 ? "99+" : pendingCount}
                     </span>
                   )}
-                </Link>
+                </button>
               );
             })}
           </div>
