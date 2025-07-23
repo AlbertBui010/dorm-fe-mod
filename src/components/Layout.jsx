@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { authService } from "../services/api";
 import registrationApprovalService from "../services/registrationApprovalService";
+import paymentService from "../services/paymentService";
+import { PAYMENT_STATUS } from "../constants/paymentFe";
 
 const Layout = ({ children, navigation: navigationProp }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +30,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [paymentWaitingCount, setPaymentWaitingCount] = useState(0);
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
@@ -44,9 +47,23 @@ const Layout = ({ children, navigation: navigationProp }) => {
       const response = await registrationApprovalService.getRegistrationStats();
       if (response.success) {
         setPendingCount(response.data.totalPending || 0);
+        loadPaymentWaitingCount();
       }
     } catch (error) {
       console.error("Error loading pending count:", error);
+    }
+  };
+
+  const loadPaymentWaitingCount = async () => {
+    try {
+      const response = await paymentService.getPayments({
+        status: PAYMENT_STATUS.CHO_XAC_NHAN,
+      });
+      if (response.success) {
+        setPaymentWaitingCount(response.data.totalItems || 0);
+      }
+    } catch (error) {
+      console.error("Error loading payment waiting count:", error);
     }
   };
 
@@ -199,6 +216,13 @@ const Layout = ({ children, navigation: navigationProp }) => {
                       {item.badge > 99 ? "99+" : item.badge}
                     </span>
                   )}
+                  {/* Badge cho Quản lý Thanh toán */}
+                  {item.name === "Quản lý Thanh toán" &&
+                    paymentWaitingCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">
+                        {paymentWaitingCount > 99 ? "99+" : paymentWaitingCount}
+                      </span>
+                    )}
                   {/* Badge cũ cho Duyệt đăng ký */}
                   {item.name === "Duyệt đăng ký" && pendingCount > 0 && (
                     <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">

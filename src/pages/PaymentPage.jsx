@@ -54,7 +54,8 @@ const PaymentPage = () => {
       };
 
       const response = await paymentService.getPayments(params);
-      setPayments(response.data.payments || []);
+      const paymentList = response.data.payments || [];
+      setPayments(paymentList);
       setTotalPages(response.data.pagination?.totalPages || 1);
     } catch (error) {
       toast.error("Không thể tải danh sách thanh toán");
