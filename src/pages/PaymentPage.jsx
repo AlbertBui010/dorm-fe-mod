@@ -1,24 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { Search, Filter, CreditCard, DollarSign, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import Layout from '../components/Layout';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Table from '../components/ui/Table';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import Pagination from '../components/ui/Pagination';
-import { Badge } from '../components/ui';
-import paymentService from '../services/paymentService';
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
+import {
+  Search,
+  CreditCard,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import Layout from "../components/Layout";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Table from "../components/ui/Table";
+import Modal from "../components/ui/Modal";
+import Input from "../components/ui/Input";
+import Pagination from "../components/ui/Pagination";
+import { Badge } from "../components/ui";
+import paymentService from "../services/paymentService";
+import { PAYMENT_STATUS } from "../constants/paymentFe";
+import { convertMethodPayment } from "../utils/convertMethodPayment";
+import { formatCurrency } from "../utils/formatCurrency";
 
 const PaymentPage = () => {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -41,15 +50,15 @@ const PaymentPage = () => {
         ...(searchTerm && { search: searchTerm }),
         ...(selectedStatus && { status: selectedStatus }),
         ...(selectedType && { type: selectedType }),
-        ...(selectedMonth && { month: selectedMonth })
+        ...(selectedMonth && { month: selectedMonth }),
       };
 
       const response = await paymentService.getPayments(params);
       setPayments(response.data.payments || []);
       setTotalPages(response.data.pagination?.totalPages || 1);
     } catch (error) {
-      toast.error('Không thể tải danh sách thanh toán');
-      console.error('Error loading payments:', error);
+      toast.error("Không thể tải danh sách thanh toán");
+      console.error("Error loading payments:", error);
     } finally {
       setLoading(false);
     }
@@ -60,15 +69,15 @@ const PaymentPage = () => {
       const response = await paymentService.getAdminStats();
       setStats(response.data || {});
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error("Error loading stats:", error);
     }
   };
 
   const handleFilterChange = (newFilters) => {
-    setSearchTerm(newFilters.search || '');
-    setSelectedStatus(newFilters.status || '');
-    setSelectedType(newFilters.type || '');
-    setSelectedMonth(newFilters.month || '');
+    setSearchTerm(newFilters.search || "");
+    setSelectedStatus(newFilters.status || "");
+    setSelectedType(newFilters.type || "");
+    setSelectedMonth(newFilters.month || "");
     setCurrentPage(1);
   };
 
@@ -84,52 +93,44 @@ const PaymentPage = () => {
   const handleApprovePayment = async (paymentId) => {
     try {
       await paymentService.approveCashPayment(paymentId);
-      toast.success('Đã duyệt thanh toán thành công');
+      toast.success("Đã duyệt thanh toán thành công");
       loadPayments();
       loadStats();
       setShowApprovalModal(false);
     } catch (error) {
-      toast.error('Không thể duyệt thanh toán');
+      toast.error("Không thể duyệt thanh toán");
     }
   };
 
   const handleRejectPayment = async (paymentId, reason) => {
     try {
       await paymentService.rejectCashPayment(paymentId, { reason });
-      toast.success('Đã từ chối thanh toán');
+      toast.success("Đã từ chối thanh toán");
       loadPayments();
       loadStats();
       setShowApprovalModal(false);
     } catch (error) {
-      toast.error('Không thể từ chối thanh toán');
+      toast.error("Không thể từ chối thanh toán");
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount);
   };
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'CHUA_THANH_TOAN': { text: 'Chưa thanh toán', variant: 'warning' },
-      'DANG_CHO_THANH_TOAN': { text: 'Đang chờ', variant: 'info' },
-      'DA_THANH_TOAN': { text: 'Đã thanh toán', variant: 'success' },
-      'CHO_XAC_NHAN_TIEN_MAT': { text: 'Chờ xác nhận', variant: 'warning' },
-      'QUA_HAN': { text: 'Quá hạn', variant: 'danger' }
+      CHUA_THANH_TOAN: { text: "Chưa thanh toán", variant: "yellow" },
+      DANG_CHO_THANH_TOAN: { text: "Đang chờ", variant: "blue" },
+      DA_THANH_TOAN: { text: "Đã thanh toán", variant: "green" },
+      CHO_XAC_NHAN: { text: "Chờ xác nhận", variant: "yellow" },
+      QUA_HAN: { text: "Quá hạn", variant: "red" },
     };
-    const config = statusMap[status] || { text: status, variant: 'secondary' };
+    const config = statusMap[status] || { text: status, variant: "gray" };
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
   const getTypeText = (type) => {
     const typeMap = {
-      'TIEN_PHONG': 'Tiền phòng',
-      'TIEN_DIEN': 'Tiền điện', 
-      'TIEN_NUOC': 'Tiền nước',
-      'PHI_DICH_VU': 'Phí dịch vụ'
+      TIEN_PHONG: "Tiền phòng",
+      TIEN_DIEN: "Tiền điện",
+      TIEN_NUOC: "Tiền nước",
     };
     return typeMap[type] || type;
   };
@@ -137,75 +138,75 @@ const PaymentPage = () => {
   // Stats cards data
   const statsCards = [
     {
-      title: 'Tổng thanh toán',
+      title: "Tổng thanh toán",
       value: stats.totals?.totalPayments || 0,
       icon: CreditCard,
-      color: 'bg-blue-500'
+      color: "bg-blue-500",
     },
     {
-      title: 'Chờ thanh toán',
+      title: "Chờ thanh toán",
       value: stats.totalPending || 0,
       icon: Clock,
-      color: 'bg-yellow-500'
+      color: "bg-yellow-500",
     },
     {
-      title: 'Đã thanh toán',
+      title: "Đã thanh toán",
       value: stats.totalPaid || 0,
       icon: CheckCircle,
-      color: 'bg-green-500'
+      color: "bg-green-500",
     },
     {
-      title: 'Quá hạn',
+      title: "Quá hạn",
       value: stats.totalOverdue || 0,
       icon: AlertCircle,
-      color: 'bg-red-500'
-    }
+      color: "bg-red-500",
+    },
   ];
 
   // Payment table columns
   const columns = [
     {
-      key: 'MaThanhToan',
-      title: 'Mã TT',
-      width: 'w-20'
+      key: "MaThanhToan",
+      title: "Mã TT",
+      width: "w-20",
     },
     {
-      key: 'SinhVien',
-      title: 'Sinh viên',
+      key: "SinhVien",
+      title: "Sinh viên",
       render: (value, payment) => (
         <div>
-          <div className="font-medium">{payment.SinhVien?.HoTen || 'N/A'}</div>
+          <div className="font-medium">{payment.SinhVien?.HoTen || "N/A"}</div>
           <div className="text-sm text-gray-500">{payment.MaSinhVien}</div>
         </div>
-      )
+      ),
     },
     {
-      key: 'LoaiThanhToan',
-      title: 'Loại',
-      render: (value) => getTypeText(value)
+      key: "LoaiThanhToan",
+      title: "Loại",
+      render: (value) => getTypeText(value),
     },
     {
-      key: 'ThangNam',
-      title: 'Tháng/Năm'
+      key: "ThangNam",
+      title: "Tháng/Năm",
     },
     {
-      key: 'SoTien',
-      title: 'Số tiền',
-      render: (value) => formatCurrency(value)
+      key: "SoTien",
+      title: "Số tiền",
+      render: (value) => formatCurrency(value),
     },
     {
-      key: 'TrangThai',
-      title: 'Trạng thái',
-      render: (value) => getStatusBadge(value)
+      key: "TrangThai",
+      title: "Trạng thái",
+      render: (value) => getStatusBadge(value),
     },
     {
-      key: 'NgayTao',
-      title: 'Ngày tạo',
-      render: (value) => new Date(value).toLocaleDateString('vi-VN')
+      key: "NgayTao",
+      title: "Ngày tạo",
+      render: (value) => new Date(value).toLocaleDateString("vi-VN"),
     },
     {
-      key: 'actions',
-      title: 'Thao tác',
+      key: "actions",
+      title: "Thao tác",
       render: (_, payment) => (
         <div className="flex gap-2">
           <Button
@@ -215,7 +216,7 @@ const PaymentPage = () => {
           >
             Chi tiết
           </Button>
-          {payment.TrangThai === 'CHO_XAC_NHAN_TIEN_MAT' && (
+          {payment.TrangThai === PAYMENT_STATUS.CHO_XAC_NHAN && (
             <Button
               variant="outline"
               size="sm"
@@ -228,8 +229,8 @@ const PaymentPage = () => {
             </Button>
           )}
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -238,7 +239,9 @@ const PaymentPage = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý thanh toán</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Quản lý thanh toán
+            </h1>
             <p className="text-gray-600 mt-1">
               Theo dõi và xử lý các khoản thanh toán của sinh viên
             </p>
@@ -270,7 +273,7 @@ const PaymentPage = () => {
 
         {/* Filters */}
         <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tìm kiếm
@@ -296,11 +299,18 @@ const PaymentPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Tất cả</option>
-                <option value="CHUA_THANH_TOAN">Chưa thanh toán</option>
-                <option value="DANG_CHO_THANH_TOAN">Đang chờ</option>
-                <option value="DA_THANH_TOAN">Đã thanh toán</option>
-                <option value="CHO_XAC_NHAN_TIEN_MAT">Chờ xác nhận</option>
-                <option value="QUA_HAN">Quá hạn</option>
+                <option value={PAYMENT_STATUS.CHUA_THANH_TOAN}>
+                  Chưa thanh toán
+                </option>
+                <option value={PAYMENT_STATUS.DANG_CHO_THANH_TOAN}>
+                  Đang chờ
+                </option>
+                <option value={PAYMENT_STATUS.DA_THANH_TOAN}>
+                  Đã thanh toán
+                </option>
+                <option value={PAYMENT_STATUS.CHO_XAC_NHAN}>
+                  Chờ xác nhận
+                </option>
               </select>
             </div>
 
@@ -317,7 +327,6 @@ const PaymentPage = () => {
                 <option value="TIEN_PHONG">Tiền phòng</option>
                 <option value="TIEN_DIEN">Tiền điện</option>
                 <option value="TIEN_NUOC">Tiền nước</option>
-                <option value="PHI_DICH_VU">Phí dịch vụ</option>
               </select>
             </div>
 
@@ -330,6 +339,17 @@ const PaymentPage = () => {
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
               />
+            </div>
+
+            <div className="flex items-end justify-end h-full">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleFilterChange({})}
+                className="h-10"
+              >
+                Xoá bộ lọc
+              </Button>
             </div>
           </div>
         </Card>
@@ -376,30 +396,176 @@ const PaymentPage = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Mã thanh toán</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.MaThanhToan}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Sinh viên</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mã thanh toán
+                  </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {selectedPayment.SinhVien?.HoTen} ({selectedPayment.MaSinhVien})
+                    {selectedPayment.MaThanhToan}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Loại thanh toán</label>
-                  <p className="mt-1 text-sm text-gray-900">{getTypeText(selectedPayment.LoaiThanhToan)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mã sinh viên
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.MaSinhVien}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Số tiền</label>
-                  <p className="mt-1 text-sm text-gray-900 font-medium">{formatCurrency(selectedPayment.SoTien)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Họ tên sinh viên
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.SinhVien?.HoTen}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Trạng thái</label>
-                  <p className="mt-1">{getStatusBadge(selectedPayment.TrangThai)}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Email sinh viên
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.SinhVien?.Email}
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Tháng/Năm</label>
-                  <p className="mt-1 text-sm text-gray-900">{selectedPayment.ThangNam}</p>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mã phòng
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.MaPhong}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Số phòng
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.Phong?.SoPhong}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Loại phòng
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.Phong?.LoaiPhong}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Loại thanh toán
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {getTypeText(selectedPayment.LoaiThanhToan)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Hình thức
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {convertMethodPayment(selectedPayment.HinhThuc)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Số tiền
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900 font-medium">
+                    {formatCurrency(selectedPayment.SoTien)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Trạng thái
+                  </label>
+                  <p className="mt-1">
+                    {getStatusBadge(selectedPayment.TrangThai)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Tháng/Năm
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.ThangNam}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ngày thanh toán
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.NgayThanhToan
+                      ? new Date(
+                          selectedPayment.NgayThanhToan
+                        ).toLocaleDateString("vi-VN")
+                      : "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    OrderCode
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.OrderCode}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Reference
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.Reference}
+                  </p>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mô tả
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.MoTa || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ngày tạo
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.NgayTao
+                      ? new Date(selectedPayment.NgayTao).toLocaleString(
+                          "vi-VN"
+                        )
+                      : "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Người tạo
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.NguoiTao || "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ngày cập nhật
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.NgayCapNhat
+                      ? new Date(selectedPayment.NgayCapNhat).toLocaleString(
+                          "vi-VN"
+                        )
+                      : "-"}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Người cập nhật
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {selectedPayment.NguoiCapNhat || "-"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -414,7 +580,9 @@ const PaymentPage = () => {
           {selectedPayment && (
             <div className="space-y-4">
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Thông tin thanh toán</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Thông tin thanh toán
+                </h4>
                 <div className="space-y-2 text-sm">
                   <div>Sinh viên: {selectedPayment.SinhVien?.HoTen}</div>
                   <div>Loại: {getTypeText(selectedPayment.LoaiThanhToan)}</div>
@@ -422,7 +590,7 @@ const PaymentPage = () => {
                   <div>Tháng: {selectedPayment.ThangNam}</div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3">
                 <Button
                   variant="outline"
@@ -432,13 +600,20 @@ const PaymentPage = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleRejectPayment(selectedPayment.MaThanhToan, 'Từ chối bởi admin')}
+                  onClick={() =>
+                    handleRejectPayment(
+                      selectedPayment.MaThanhToan,
+                      "Từ chối bởi admin"
+                    )
+                  }
                   className="text-red-600 border-red-300 hover:bg-red-50"
                 >
                   Từ chối
                 </Button>
                 <Button
-                  onClick={() => handleApprovePayment(selectedPayment.MaThanhToan)}
+                  onClick={() =>
+                    handleApprovePayment(selectedPayment.MaThanhToan)
+                  }
                   className="bg-green-600 hover:bg-green-700"
                 >
                   Duyệt thanh toán

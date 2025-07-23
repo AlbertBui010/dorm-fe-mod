@@ -179,7 +179,7 @@ class PaymentService {
       CHUA_THANH_TOAN: { text: "Chưa thanh toán", color: "red" },
       DANG_CHO_THANH_TOAN: { text: "Đang chờ thanh toán", color: "blue" },
       DA_THANH_TOAN: { text: "Đã thanh toán", color: "green" },
-      CHO_XAC_NHAN_TIEN_MAT: { text: "Chờ xác nhận tiền mặt", color: "orange" },
+      CHO_XAC_NHAN: { text: "Chờ xác nhận", color: "orange" },
       QUA_HAN: { text: "Quá hạn", color: "red" },
     };
     return statusMap[status] || { text: status, color: "gray" };
@@ -193,7 +193,6 @@ class PaymentService {
       TIEN_PHONG: "Tiền phòng",
       TIEN_DIEN: "Tiền điện",
       TIEN_NUOC: "Tiền nước",
-      PHI_DICH_VU: "Phí dịch vụ",
     };
     return typeMap[type] || type;
   }

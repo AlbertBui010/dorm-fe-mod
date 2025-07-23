@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { studentPaymentService } from "../services/api/studentPaymentService";
 import Layout from "../components/Layout";
+import { PAYMENT_STATUS } from "../constants/paymentFe";
 
 // Navigation sẽ được tạo động dựa vào stats (nếu có)
 const getStudentNavigation = (stats) => {
@@ -139,10 +140,6 @@ const StudentPaymentPage = () => {
     const statusConfig = {
       CHUA_THANH_TOAN: { text: "Chưa thanh toán", variant: "yellow" },
       DANG_CHO_THANH_TOAN: { text: "Đang chờ thanh toán", variant: "blue" },
-      CHO_XAC_NHAN_TIEN_MAT: {
-        text: "Chờ xác nhận tiền mặt",
-        variant: "purple",
-      },
       CHO_XAC_NHAN: { text: "Chờ xác nhận", variant: "purple" },
       DA_THANH_TOAN: { text: "Đã thanh toán", variant: "green" },
       QUA_HAN: { text: "Quá hạn", variant: "red" },
@@ -315,16 +312,18 @@ const StudentPaymentPage = () => {
                       className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="">Tất cả</option>
-                      <option value="CHUA_THANH_TOAN">Chưa thanh toán</option>
-                      <option value="DANG_CHO_THANH_TOAN">
+                      <option value={PAYMENT_STATUS.CHUA_THANH_TOAN}>
+                        Chưa thanh toán
+                      </option>
+                      <option value={PAYMENT_STATUS.DANG_CHO_THANH_TOAN}>
                         Đang chờ thanh toán
                       </option>
-                      <option value="CHO_XAC_NHAN_TIEN_MAT">
-                        Chờ xác nhận tiền mặt
+                      <option value={PAYMENT_STATUS.CHO_XAC_NHAN}>
+                        Chờ xác nhận
                       </option>
-                      <option value="CHO_XAC_NHAN">Chờ xác nhận</option>
-                      <option value="DA_THANH_TOAN">Đã thanh toán</option>
-                      <option value="QUA_HAN">Quá hạn</option>
+                      <option value={PAYMENT_STATUS.DA_THANH_TOAN}>
+                        Đã thanh toán
+                      </option>
                     </select>
                   </div>
                 </div>

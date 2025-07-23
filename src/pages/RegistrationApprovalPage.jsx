@@ -12,6 +12,7 @@ import Pagination from "../components/ui/Pagination";
 import { RoomFeeCalculationModal } from "../components/ui";
 
 import registrationApprovalService from "../services/registrationApprovalService";
+import { DANG_KY_STATUS } from "../constants/dangKyFe";
 
 const RegistrationApprovalPage = () => {
   // State management
@@ -58,7 +59,12 @@ const RegistrationApprovalPage = () => {
       setLoading(true);
       let trangThaiParam = filters.trangThai;
       if (!trangThaiParam) {
-        trangThaiParam = "CHO_DUYET,DA_DUYET,TU_CHOI";
+        trangThaiParam =
+          DANG_KY_STATUS.CHO_DUYET.key +
+          "," +
+          DANG_KY_STATUS.DA_DUYET.key +
+          "," +
+          DANG_KY_STATUS.TU_CHOI.key;
       }
       const response =
         await registrationApprovalService.getPendingRegistrations({
@@ -265,16 +271,16 @@ const RegistrationApprovalPage = () => {
         let label = "";
         let colorClass = "";
         switch (value) {
-          case "CHO_DUYET":
-            label = "Chờ duyệt";
+          case DANG_KY_STATUS.CHO_DUYET.key:
+            label = DANG_KY_STATUS.CHO_DUYET.value;
             colorClass = "bg-yellow-100 text-yellow-800";
             break;
-          case "DA_DUYET":
-            label = "Đã duyệt";
+          case DANG_KY_STATUS.DA_DUYET.key:
+            label = DANG_KY_STATUS.DA_DUYET.value;
             colorClass = "bg-green-100 text-green-800";
             break;
-          case "TU_CHOI":
-            label = "Từ chối";
+          case DANG_KY_STATUS.TU_CHOI.key:
+            label = DANG_KY_STATUS.TU_CHOI.value;
             colorClass = "bg-red-100 text-red-800";
             break;
           default:
@@ -299,13 +305,15 @@ const RegistrationApprovalPage = () => {
           size="sm"
           onClick={() => viewRegistrationDetail(row)}
           className={
-            row.TrangThai === "CHO_DUYET"
+            row.TrangThai === DANG_KY_STATUS.CHO_DUYET.key
               ? "text-blue-600 hover:text-blue-800"
               : "text-gray-600 hover:text-gray-800"
           }
         >
           <Eye className="h-4 w-4 mr-1" />
-          {row.TrangThai === "CHO_DUYET" ? "Duyệt sinh viên" : "Xem chi tiết"}
+          {row.TrangThai === DANG_KY_STATUS.CHO_DUYET.key
+            ? "Duyệt sinh viên"
+            : "Xem chi tiết"}
         </Button>
       ),
     },
@@ -320,11 +328,11 @@ const RegistrationApprovalPage = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               {filters.trangThai
                 ? `Quản lý đăng ký - ${
-                    filters.trangThai === "CHO_DUYET"
+                    filters.trangThai === DANG_KY_STATUS.CHO_DUYET.key
                       ? "Chờ duyệt"
-                      : filters.trangThai === "DA_DUYET"
+                      : filters.trangThai === DANG_KY_STATUS.DA_DUYET.key
                       ? "Đã duyệt"
-                      : filters.trangThai === "TU_CHOI"
+                      : filters.trangThai === DANG_KY_STATUS.TU_CHOI.key
                       ? "Đã từ chối"
                       : "Tất cả"
                   }`
@@ -343,7 +351,9 @@ const RegistrationApprovalPage = () => {
             <div className="flex items-center">
               <Clock className="w-8 h-8 text-yellow-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Chờ duyệt</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {DANG_KY_STATUS.CHO_DUYET.value}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.totalPending || 0}
                 </p>
@@ -355,7 +365,9 @@ const RegistrationApprovalPage = () => {
             <div className="flex items-center">
               <UserCheck className="w-8 h-8 text-green-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Đã duyệt</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {DANG_KY_STATUS.DA_DUYET.value}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.totalApproved || 0}
                 </p>
@@ -367,7 +379,9 @@ const RegistrationApprovalPage = () => {
             <div className="flex items-center">
               <UserX className="w-8 h-8 text-red-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Đã từ chối</p>
+                <p className="text-sm font-medium text-gray-600">
+                  {DANG_KY_STATUS.TU_CHOI.value}
+                </p>
                 <p className="text-2xl font-bold text-gray-900">
                   {stats.totalRejected || 0}
                 </p>
@@ -418,9 +432,15 @@ const RegistrationApprovalPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="CHO_DUYET">Chờ duyệt</option>
-              <option value="DA_DUYET">Đã duyệt</option>
-              <option value="TU_CHOI">Đã từ chối</option>
+              <option value={DANG_KY_STATUS.CHO_DUYET.key}>
+                {DANG_KY_STATUS.CHO_DUYET.value}
+              </option>
+              <option value={DANG_KY_STATUS.DA_DUYET.key}>
+                {DANG_KY_STATUS.DA_DUYET.value}
+              </option>
+              <option value={DANG_KY_STATUS.TU_CHOI.key}>
+                {DANG_KY_STATUS.TU_CHOI.value}
+              </option>
             </select>
 
             <Button
@@ -519,7 +539,7 @@ const RegistrationApprovalPage = () => {
             </div>
 
             {/* Available Rooms */}
-            {selectedRegistration.TrangThai === "CHO_DUYET" ? (
+            {selectedRegistration.TrangThai === DANG_KY_STATUS.CHO_DUYET.key ? (
               <>
                 {/* Phòng phù hợp */}
                 <div>
