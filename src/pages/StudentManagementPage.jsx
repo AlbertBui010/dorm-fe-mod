@@ -9,6 +9,7 @@ import Table from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Pagination from '../components/ui/Pagination';
+import { STUDENT_STATUS_FE } from '../constants/sinhvienFE';
 
 const StudentManagementPage = () => {
   const [students, setStudents] = useState([]);
@@ -206,6 +207,40 @@ const StudentManagementPage = () => {
     }
   };
 
+  const handleCheckIn = async (student) => {
+    try {
+      const response = await studentService.checkIn(student.MaSinhVien);
+      if (response.success) {
+        toast.success('Xác nhận nhận phòng thành công');
+        // Cập nhật lại students trong state
+        setStudents(prev =>
+          prev.map(sv =>
+            sv.MaSinhVien === student.MaSinhVien
+              ? { ...sv, ...response.data } // cập nhật trạng thái và các field mới
+              : sv
+          )
+        );
+        // Cập nhật lại stats (nếu muốn realtime)
+        loadStats();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi khi xác nhận nhận phòng');
+    }
+  };
+
+  const handleCheckOut = async (student) => {
+    try {
+      const response = await studentService.checkOut(student.MaSinhVien);
+      if (response.data.success) {
+        toast.success('Xác nhận ngưng ở thành công');
+        loadStudents();
+        loadStats();
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Có lỗi khi xác nhận ngưng ở');
+    }
+  };
+
   // Modal handlers
   const openCreateModal = () => {
     resetForm();
@@ -295,28 +330,25 @@ const StudentManagementPage = () => {
         let colorClass = '';
 
         switch (value) {
-          case 'DANG_O':
-            label = 'Đang ở';
+          case STUDENT_STATUS_FE.DANG_O.key:
+            label = STUDENT_STATUS_FE.DANG_O.value;
             colorClass = 'bg-green-100 text-green-800';
             break;
-          case 'NGUNG_O':
-            label = 'Ngưng ở';
+          case STUDENT_STATUS_FE.NGUNG_O.key:
+            label = STUDENT_STATUS_FE.NGUNG_O.value;
             colorClass = 'bg-red-100 text-red-800';
             break;
-          case 'CHO_DUYET':
-            label = 'Chờ duyệt';
-            colorClass = 'bg-yellow-100 text-yellow-800';
-            break;
-          case 'DANG_KY':
-            label = 'Đăng ký mới';
+
+          case STUDENT_STATUS_FE.DANG_KY.key:
+            label = STUDENT_STATUS_FE.DANG_KY.value;
             colorClass = 'bg-blue-100 text-blue-800';
             break;
-          case 'HoatDong':
-            label = 'Hoạt động';
+          case STUDENT_STATUS_FE.CHO_NHAN_PHONG.key:
+            label = STUDENT_STATUS_FE.CHO_NHAN_PHONG.value;
             colorClass = 'bg-green-100 text-green-800';
             break;
-          case 'KhongHoatDong':
-            label = 'Không hoạt động';
+          case STUDENT_STATUS_FE.VI_PHAM.key:
+            label = STUDENT_STATUS_FE.VI_PHAM.value;
             colorClass = 'bg-red-100 text-red-800';
             break;
           default:
@@ -367,6 +399,26 @@ const StudentManagementPage = () => {
             className="text-red-600 hover:text-red-800"
           >
             <Trash2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCheckIn(row)}
+            className="text-green-600 hover:text-green-800"
+            disabled={row.TrangThai === STUDENT_STATUS_FE.DANG_O.key || row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key}
+          >
+            <UserCheck className="h-4 w-4" />
+            Nhận phòng
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleCheckOut(row)}
+            className="text-red-600 hover:text-red-800"
+            disabled={row.TrangThai !== STUDENT_STATUS_FE.DANG_O.key}
+          >
+            <UserX className="h-4 w-4" />
+            Ngưng ở
           </Button>
         </div>
       )
@@ -461,12 +513,11 @@ const StudentManagementPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="DANG_O">Đang ở</option>
-              <option value="NGUNG_O">Ngưng ở</option>
-              <option value="CHO_DUYET">Chờ duyệt</option>
-              <option value="DANG_KY">Đăng ký mới</option>
-              <option value="HoatDong">Hoạt động</option>
-              <option value="KhongHoatDong">Không hoạt động</option>
+              <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
+              <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
+              <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
+              <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
+              <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
             </select>
 
             <Button
@@ -614,8 +665,8 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="HoatDong">Hoạt động</option>
-                  <option value="KhongHoatDong">Không hoạt động</option>
+                  <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
                 </select>
               </div>
             </div>
@@ -755,8 +806,8 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="HoatDong">Hoạt động</option>
-                  <option value="KhongHoatDong">Không hoạt động</option>
+                  <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
                 </select>
               </div>
             </div>
@@ -846,11 +897,11 @@ const StudentManagementPage = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-500">Trạng thái</label>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedStudent.TrangThai === 'HoatDong' 
+                      selectedStudent.TrangThai === STUDENT_STATUS_FE.DANG_O.key 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {selectedStudent.TrangThai === 'HoatDong' ? 'Hoạt động' : 'Không hoạt động'}
+                      {STUDENT_STATUS_FE[selectedStudent.TrangThai]?.value || selectedStudent.TrangThai}
                     </span>
                   </div>
                   

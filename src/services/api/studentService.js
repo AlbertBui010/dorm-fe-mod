@@ -99,6 +99,16 @@ export const studentService = {
     const params = { namHoc: year };
     return await studentService.getAll(params);
   },
+
+  async checkIn(maSinhVien) {
+    const response = await api.put(`/sinh-vien/${maSinhVien}/check-in`);
+    return response.data;
+  },
+
+  async checkOut(maSinhVien) {
+    const response = await api.put(`/sinh-vien/${maSinhVien}/check-out`);
+    return response.data;
+  },
 };
 
 export default studentService;
