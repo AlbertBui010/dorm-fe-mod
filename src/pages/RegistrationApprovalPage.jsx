@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Eye, Search, Users, UserCheck, UserX, Clock } from "lucide-react";
+
 import Layout from "../components/Layout";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
@@ -8,9 +9,9 @@ import { Badge } from "../components/ui/Badge";
 import Table from "../components/ui/Table";
 import Modal from "../components/ui/Modal";
 import Pagination from "../components/ui/Pagination";
-import { RoomFeeCalculationModal } from "../components/ui";
-import registrationApprovalService from "../services/registrationApprovalService";
 import { DANG_KY_STATUS } from "../constants/dangKyFe";
+import registrationApprovalService from "../services/registrationApprovalService";
+import RoomFeeCalculationModal from "../components/ui/RoomFeeCalculationModal";
 
 const RegistrationApprovalPage = () => {
   // State management
@@ -57,12 +58,7 @@ const RegistrationApprovalPage = () => {
       setLoading(true);
       let trangThaiParam = filters.trangThai;
       if (!trangThaiParam) {
-        trangThaiParam =
-          DANG_KY_STATUS.CHO_DUYET.key +
-          "," +
-          DANG_KY_STATUS.DA_DUYET.key +
-          "," +
-          DANG_KY_STATUS.TU_CHOI.key;
+        trangThaiParam = "CHO_DUYET,DA_DUYET,TU_CHOI";
       }
       const response =
         await registrationApprovalService.getPendingRegistrations({
@@ -269,16 +265,16 @@ const RegistrationApprovalPage = () => {
         let label = "";
         let colorClass = "";
         switch (value) {
-          case DANG_KY_STATUS.CHO_DUYET.key:
-            label = DANG_KY_STATUS.CHO_DUYET.value;
+          case "CHO_DUYET":
+            label = "Chờ duyệt";
             colorClass = "bg-yellow-100 text-yellow-800";
             break;
-          case DANG_KY_STATUS.DA_DUYET.key:
-            label = DANG_KY_STATUS.DA_DUYET.value;
+          case "DA_DUYET":
+            label = "Đã duyệt";
             colorClass = "bg-green-100 text-green-800";
             break;
-          case DANG_KY_STATUS.TU_CHOI.key:
-            label = DANG_KY_STATUS.TU_CHOI.value;
+          case "TU_CHOI":
+            label = "Từ chối";
             colorClass = "bg-red-100 text-red-800";
             break;
           default:
@@ -303,15 +299,13 @@ const RegistrationApprovalPage = () => {
           size="sm"
           onClick={() => viewRegistrationDetail(row)}
           className={
-            row.TrangThai === DANG_KY_STATUS.CHO_DUYET.key
+            row.TrangThai === "CHO_DUYET"
               ? "text-blue-600 hover:text-blue-800"
               : "text-gray-600 hover:text-gray-800"
           }
         >
           <Eye className="h-4 w-4 mr-1" />
-          {row.TrangThai === DANG_KY_STATUS.CHO_DUYET.key
-            ? "Duyệt sinh viên"
-            : "Xem chi tiết"}
+          {row.TrangThai === "CHO_DUYET" ? "Duyệt sinh viên" : "Xem chi tiết"}
         </Button>
       ),
     },
@@ -326,11 +320,11 @@ const RegistrationApprovalPage = () => {
             <h1 className="text-2xl font-bold text-gray-900">
               {filters.trangThai
                 ? `Quản lý đăng ký - ${
-                    filters.trangThai === DANG_KY_STATUS.CHO_DUYET.key
+                    filters.trangThai === "CHO_DUYET"
                       ? "Chờ duyệt"
-                      : filters.trangThai === DANG_KY_STATUS.DA_DUYET.key
+                      : filters.trangThai === "DA_DUYET"
                       ? "Đã duyệt"
-                      : filters.trangThai === DANG_KY_STATUS.TU_CHOI.key
+                      : filters.trangThai === "TU_CHOI"
                       ? "Đã từ chối"
                       : "Tất cả"
                   }`
@@ -430,15 +424,9 @@ const RegistrationApprovalPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value={DANG_KY_STATUS.CHO_DUYET.key}>
-                {DANG_KY_STATUS.CHO_DUYET.value}
-              </option>
-              <option value={DANG_KY_STATUS.DA_DUYET.key}>
-                {DANG_KY_STATUS.DA_DUYET.value}
-              </option>
-              <option value={DANG_KY_STATUS.TU_CHOI.key}>
-                {DANG_KY_STATUS.TU_CHOI.value}
-              </option>
+              <option value="CHO_DUYET">Chờ duyệt</option>
+              <option value="DA_DUYET">Đã duyệt</option>
+              <option value="TU_CHOI">Đã từ chối</option>
             </select>
 
             <Button
@@ -537,7 +525,7 @@ const RegistrationApprovalPage = () => {
             </div>
 
             {/* Available Rooms */}
-            {selectedRegistration.TrangThai === DANG_KY_STATUS.CHO_DUYET.key ? (
+            {selectedRegistration.TrangThai === "CHO_DUYET" ? (
               <>
                 {/* Phòng phù hợp */}
                 <div>

@@ -9,6 +9,7 @@ import Table from '../components/ui/Table';
 import Modal from '../components/ui/Modal';
 import Pagination from '../components/ui/Pagination';
 import roomService from '../services/api/roomService';
+import { PHONG_STATUS_FE } from '../constants/phongFE';
 
 const RoomManagementPage = () => {
   const [rooms, setRooms] = useState([]);
@@ -40,7 +41,7 @@ const RoomManagementPage = () => {
     DienTich: 20,
     GiaThueThang: 500000,
     MoTa: '',
-    TrangThai: 'Hoạt động'
+    TrangThai: 'HOAT_DONG'
   });
 
   const [errors, setErrors] = useState({});
@@ -239,7 +240,7 @@ const RoomManagementPage = () => {
       DienTich: 20,
       GiaThueThang: 500000,
       MoTa: '',
-      TrangThai: 'Hoạt động'
+      TrangThai: PHONG_STATUS_FE.HOAT_DONG.key
     });
     setErrors({});
     setSelectedRoom(null);
@@ -627,9 +628,8 @@ const RoomManagementPage = () => {
                 onChange={(e) => handleInputChange('TrangThai', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Hoạt động">Hoạt động</option>
-                <option value="Bảo trì">Bảo trì</option>
-                <option value="Đã đóng">Đã đóng</option>
+                <option value={PHONG_STATUS_FE.HOAT_DONG.key}>{PHONG_STATUS_FE.HOAT_DONG.value}</option>
+                <option value={PHONG_STATUS_FE.KHOA.key}>{PHONG_STATUS_FE.KHOA.value}</option>
               </select>
             </div>
           </div>
@@ -765,9 +765,8 @@ const RoomManagementPage = () => {
                 onChange={(e) => handleInputChange('TrangThai', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="Hoạt động">Hoạt động</option>
-                <option value="Bảo trì">Bảo trì</option>
-                <option value="Đã đóng">Đã đóng</option>
+                <option value={PHONG_STATUS_FE.HOAT_DONG.key}>{PHONG_STATUS_FE.HOAT_DONG.value}</option>
+                <option value={PHONG_STATUS_FE.KHOA.key}>{PHONG_STATUS_FE.KHOA.value}</option>
               </select>
             </div>
           </div>
