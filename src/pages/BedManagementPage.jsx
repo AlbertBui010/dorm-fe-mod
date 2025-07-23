@@ -5,7 +5,6 @@ import {
   Search,
   Filter,
   Bed,
-  Users,
   UserCheck,
   MapPin,
   Building,
@@ -20,12 +19,12 @@ import Pagination from "../components/ui/Pagination";
 import { bedService } from "../services/api/bedService";
 import { roomService } from "../services/api/roomService";
 import { studentService } from "../services/api/studentService";
+import { GIUONG_STATUS } from "../constants/giuongFe";
 
 const BedManagementPage = () => {
   const [beds, setBeds] = useState([]);
   const [allBeds, setAllBeds] = useState([]); // Store all beds for room capacity check
   const [rooms, setRooms] = useState([]);
-  const [students, setStudents] = useState([]);
   const [availableStudents, setAvailableStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,7 +38,6 @@ const BedManagementPage = () => {
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedBed, setSelectedBed] = useState(null);
 
@@ -48,7 +46,7 @@ const BedManagementPage = () => {
     MaGiuong: "",
     MaPhong: "",
     SoGiuong: "",
-    GhiChu: "",
+    TrangThai: "HOAT_DONG",
   });
 
   const [assignData, setAssignData] = useState({
@@ -81,7 +79,6 @@ const BedManagementPage = () => {
   useEffect(() => {
     fetchBeds();
     fetchRooms();
-    fetchStudents();
   }, [currentPage, searchTerm, selectedRoom, statusFilter]);
 
   const fetchBeds = async () => {
@@ -128,15 +125,6 @@ const BedManagementPage = () => {
     }
   };
 
-  const fetchStudents = async () => {
-    try {
-      const response = await studentService.getAll({ limit: 100 });
-      setStudents(response.data || []);
-    } catch (err) {
-      console.error("Error fetching students:", err);
-    }
-  };
-
   const fetchAvailableStudents = async (roomType) => {
     try {
       const response = await studentService.getWithoutBed(roomType);
@@ -146,7 +134,6 @@ const BedManagementPage = () => {
     }
   };
 
-  // Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -172,7 +159,6 @@ const BedManagementPage = () => {
     }));
   };
 
-  // CRUD operations
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
@@ -192,31 +178,19 @@ const BedManagementPage = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await bedService.updateBed(selectedBed.MaGiuong, formData);
-      setShowEditModal(false);
+      // Chỉ update trạng thái
+      await bedService.updateBed(selectedBed.MaGiuong, {
+        TrangThai: formData.TrangThai,
+      });
+      setShowCreateModal(false);
       resetForm();
       fetchBeds();
-      toast.success("Cập nhật giường thành công!");
+      toast.success("Cập nhật trạng thái giường thành công!");
     } catch (err) {
       console.error("Error updating bed:", err);
       toast.error(
-        "Lỗi khi cập nhật giường: " +
+        "Lỗi khi cập nhật trạng thái giường: " +
           (err.response?.data?.message || err.message)
-      );
-    }
-  };
-
-  const handleDelete = async (maGiuong) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa giường này?")) return;
-
-    try {
-      await bedService.deleteBed(maGiuong);
-      fetchBeds();
-      toast.success("Xóa giường thành công!");
-    } catch (err) {
-      console.error("Error deleting bed:", err);
-      toast.error(
-        "Lỗi khi xóa giường: " + (err.response?.data?.message || err.message)
       );
     }
   };
@@ -259,7 +233,7 @@ const BedManagementPage = () => {
       MaGiuong: "",
       MaPhong: "",
       SoGiuong: "",
-      GhiChu: "",
+      TrangThai: "HOAT_DONG",
     });
     setSelectedBed(null);
   };
@@ -270,9 +244,9 @@ const BedManagementPage = () => {
       MaGiuong: bed.MaGiuong,
       MaPhong: bed.MaPhong,
       SoGiuong: bed.SoGiuong,
-      GhiChu: bed.GhiChu || "",
+      TrangThai: bed.TrangThai || "HOAT_DONG",
     });
-    setShowEditModal(true);
+    setShowCreateModal(true);
   };
 
   const openAssignModal = (bed) => {
@@ -346,7 +320,7 @@ const BedManagementPage = () => {
               variant="primary"
               onClick={() => openAssignModal(row)}
             >
-              Gán SV
+              Phân bổ SV
             </Button>
           ) : (
             <Button
@@ -357,13 +331,6 @@ const BedManagementPage = () => {
               Gỡ SV
             </Button>
           )}
-          <Button
-            size="sm"
-            variant="danger"
-            onClick={() => handleDelete(row.MaGiuong)}
-          >
-            Xóa
-          </Button>
         </div>
       ),
     },
@@ -575,187 +542,217 @@ const BedManagementPage = () => {
           />
         </Card>
 
-        {/* Create Modal */}
+        {/* Create/Edit Modal (dùng chung) */}
         <Modal
           isOpen={showCreateModal}
           onClose={() => {
             setShowCreateModal(false);
             resetForm();
           }}
-          title={`Thêm Giường Mới${
-            formData.MaPhong
-              ? ` - Phòng ${
-                  rooms.find(
-                    (r) => r.MaPhong.toString() === formData.MaPhong.toString()
-                  )?.SoPhong || formData.MaPhong
+          title={
+            selectedBed
+              ? `Cập nhật trạng thái giường`
+              : `Thêm Giường Mới${
+                  formData.MaPhong
+                    ? ` - Phòng ${
+                        rooms.find(
+                          (r) =>
+                            r.MaPhong.toString() === formData.MaPhong.toString()
+                        )?.SoPhong || formData.MaPhong
+                      }`
+                    : ""
                 }`
-              : ""
-          }`}
+          }
         >
-          <form onSubmit={handleCreate} className="space-y-4">
-            {formData.MaPhong &&
-              (() => {
-                const selectedRoomData = rooms.find(
-                  (r) => r.MaPhong.toString() === formData.MaPhong.toString()
-                );
-                const currentBedCount = allBeds.filter(
-                  (b) => b.MaPhong.toString() === formData.MaPhong.toString()
-                ).length;
-                const isFull =
-                  selectedRoomData &&
-                  currentBedCount >= selectedRoomData.SucChua;
-
-                return isFull ? (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-                    <p className="text-sm text-red-700">
-                      <strong>Cảnh báo:</strong> Phòng{" "}
-                      {selectedRoomData?.SoPhong} đã đủ giường (
-                      {currentBedCount}/{selectedRoomData?.SucChua})
-                    </p>
-                  </div>
-                ) : null;
-              })()}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phòng
-              </label>
-              <select
-                name="MaPhong"
-                value={formData.MaPhong}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Chọn phòng</option>
-                {rooms.map((room) => {
-                  const roomBedCount = allBeds.filter(
-                    (b) => b.MaPhong.toString() === room.MaPhong.toString()
-                  ).length;
-                  const isRoomFull = roomBedCount >= room.SucChua;
-                  return (
-                    <option
-                      key={room.MaPhong}
-                      value={room.MaPhong}
-                      disabled={isRoomFull}
-                    >
-                      {room.SoPhong} - {room.LoaiPhong} ({roomBedCount}/
-                      {room.SucChua} giường){isRoomFull ? " - Đầy" : ""}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-            <Input
-              label="Số Giường"
-              name="SoGiuong"
-              value={formData.SoGiuong}
-              onChange={handleInputChange}
-              placeholder="1"
-              required
-            />
-            <Input
-              label="Ghi Chú"
-              name="GhiChu"
-              value={formData.GhiChu}
-              onChange={handleInputChange}
-              placeholder="Ghi chú thêm..."
-            />
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowCreateModal(false);
-                  resetForm();
-                }}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                disabled={(() => {
-                  if (!formData.MaPhong) return true;
-                  const selectedRoomData = rooms.find(
-                    (r) => r.MaPhong.toString() === formData.MaPhong.toString()
-                  );
-                  const currentBedCount = allBeds.filter(
-                    (b) => b.MaPhong.toString() === formData.MaPhong.toString()
-                  ).length;
-                  return (
-                    selectedRoomData &&
-                    currentBedCount >= selectedRoomData.SucChua
-                  );
-                })()}
-              >
-                Tạo Giường
-              </Button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Edit Modal */}
-        <Modal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            resetForm();
-          }}
-          title="Chỉnh Sửa Giường"
-        >
-          <form onSubmit={handleUpdate} className="space-y-4">
-            <Input
-              label="Mã Giường"
-              name="MaGiuong"
-              value={formData.MaGiuong}
-              onChange={handleInputChange}
-              disabled
-            />
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phòng
-              </label>
-              <select
-                name="MaPhong"
-                value={formData.MaPhong}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Chọn phòng</option>
-                {rooms.map((room) => (
-                  <option key={room.MaPhong} value={room.MaPhong}>
-                    {room.SoPhong} - {room.LoaiPhong}
+          <form
+            onSubmit={selectedBed ? handleUpdate : handleCreate}
+            className="space-y-4"
+          >
+            {/* Nếu là sửa thì chỉ cho sửa trạng thái, các trường khác chỉ hiển thị */}
+            {selectedBed ? (
+              <>
+                <Input
+                  label="Mã Giường"
+                  name="MaGiuong"
+                  value={formData.MaGiuong}
+                  disabled
+                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phòng
+                  </label>
+                  <select
+                    name="MaPhong"
+                    value={formData.MaPhong}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                  >
+                    {rooms.map((room) => (
+                      <option key={room.MaPhong} value={room.MaPhong}>
+                        {room.SoPhong} - {room.LoaiPhong}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <Input
+                  label="Số Giường"
+                  name="SoGiuong"
+                  value={formData.SoGiuong}
+                  disabled
+                />
+                <select
+                  value={formData.TrangThai}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      TrangThai: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={GIUONG_STATUS.HOAT_DONG.key}>
+                    {GIUONG_STATUS.HOAT_DONG.value}
                   </option>
-                ))}
-              </select>
-            </div>
-            <Input
-              label="Số Giường"
-              name="SoGiuong"
-              value={formData.SoGiuong}
-              onChange={handleInputChange}
-              required
-            />
-            <Input
-              label="Ghi Chú"
-              name="GhiChu"
-              value={formData.GhiChu}
-              onChange={handleInputChange}
-            />
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setShowEditModal(false);
-                  resetForm();
-                }}
-              >
-                Hủy
-              </Button>
-              <Button type="submit">Cập Nhật</Button>
-            </div>
+                  <option value={GIUONG_STATUS.BAO_TRI.key}>
+                    {GIUONG_STATUS.BAO_TRI.value}
+                  </option>
+                  {/* Chỉ cho chọn Ngưng hoạt động khi SỬA (selectedBed != null) */}
+                  {selectedBed !== null && (
+                    <option value={GIUONG_STATUS.NGUNG_HOAT_DONG.key}>
+                      {GIUONG_STATUS.NGUNG_HOAT_DONG.value}
+                    </option>
+                  )}
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      resetForm();
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button type="submit">Cập nhật</Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {formData.MaPhong &&
+                  (() => {
+                    const selectedRoomData = rooms.find(
+                      (r) =>
+                        r.MaPhong.toString() === formData.MaPhong.toString()
+                    );
+                    const currentBedCount = allBeds.filter(
+                      (b) =>
+                        b.MaPhong.toString() === formData.MaPhong.toString()
+                    ).length;
+                    const isFull =
+                      selectedRoomData &&
+                      currentBedCount >= selectedRoomData.SucChua;
+
+                    return isFull ? (
+                      <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+                        <p className="text-sm text-red-700">
+                          <strong>Cảnh báo:</strong> Phòng{" "}
+                          {selectedRoomData?.SoPhong} đã đủ giường (
+                          {currentBedCount}/{selectedRoomData?.SucChua})
+                        </p>
+                      </div>
+                    ) : null;
+                  })()}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Phòng
+                  </label>
+                  <select
+                    name="MaPhong"
+                    value={formData.MaPhong}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Chọn phòng</option>
+                    {rooms.map((room) => {
+                      const roomBedCount = allBeds.filter(
+                        (b) => b.MaPhong.toString() === room.MaPhong.toString()
+                      ).length;
+                      const isRoomFull = roomBedCount >= room.SucChua;
+                      return (
+                        <option
+                          key={room.MaPhong}
+                          value={room.MaPhong}
+                          disabled={isRoomFull}
+                        >
+                          {room.SoPhong} - {room.LoaiPhong} ({roomBedCount}/
+                          {room.SucChua} giường){isRoomFull ? " - Đầy" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+                <Input
+                  label="Số Giường"
+                  name="SoGiuong"
+                  value={formData.SoGiuong}
+                  onChange={handleInputChange}
+                  placeholder="1"
+                  required
+                />
+                <select
+                  value={formData.TrangThai}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      TrangThai: e.target.value,
+                    }))
+                  }
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value={GIUONG_STATUS.HOAT_DONG.key}>
+                    {GIUONG_STATUS.HOAT_DONG.value}
+                  </option>
+                  <option value={GIUONG_STATUS.BAO_TRI.key}>
+                    {GIUONG_STATUS.BAO_TRI.value}
+                  </option>
+                </select>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      resetForm();
+                    }}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={(() => {
+                      if (!formData.MaPhong) return true;
+                      const selectedRoomData = rooms.find(
+                        (r) =>
+                          r.MaPhong.toString() === formData.MaPhong.toString()
+                      );
+                      const currentBedCount = allBeds.filter(
+                        (b) =>
+                          b.MaPhong.toString() === formData.MaPhong.toString()
+                      ).length;
+                      return (
+                        selectedRoomData &&
+                        currentBedCount >= selectedRoomData.SucChua
+                      );
+                    })()}
+                  >
+                    Tạo Giường
+                  </Button>
+                </div>
+              </>
+            )}
           </form>
         </Modal>
 
