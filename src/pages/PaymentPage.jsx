@@ -16,7 +16,7 @@ import Input from "../components/ui/Input";
 import Pagination from "../components/ui/Pagination";
 import { Badge } from "../components/ui";
 import paymentService from "../services/paymentService";
-import { PAYMENT_STATUS } from "../constants/paymentFe";
+import { PAYMENT_STATUS, PAYMENT_TYPE } from "../constants/paymentFe";
 import { convertMethodPayment } from "../utils/convertMethodPayment";
 import { formatCurrency } from "../utils/formatCurrency";
 
@@ -127,15 +127,6 @@ const PaymentPage = () => {
     return <Badge variant={config.variant}>{config.text}</Badge>;
   };
 
-  const getTypeText = (type) => {
-    const typeMap = {
-      TIEN_PHONG: "Tiền phòng",
-      TIEN_DIEN: "Tiền điện",
-      TIEN_NUOC: "Tiền nước",
-    };
-    return typeMap[type] || type;
-  };
-
   // Stats cards data
   const statsCards = [
     {
@@ -184,26 +175,35 @@ const PaymentPage = () => {
     {
       key: "LoaiThanhToan",
       title: "Loại",
-      render: (value) => getTypeText(value),
+      render: (value) => PAYMENT_TYPE[value]?.value || value,
+      width: "w-20",
+      align: "center",
     },
     {
       key: "ThangNam",
       title: "Tháng/Năm",
+      width: "w-20",
+      align: "center",
     },
     {
       key: "SoTien",
       title: "Số tiền",
       render: (value) => formatCurrency(value),
+      width: "w-20",
+      align: "center",
     },
     {
       key: "TrangThai",
       title: "Trạng thái",
       render: (value) => getStatusBadge(value),
+      width: "w-20",
+      align: "center",
     },
     {
       key: "NgayTao",
       title: "Ngày tạo",
       render: (value) => new Date(value).toLocaleDateString("vi-VN"),
+      width: "w-20",
     },
     {
       key: "actions",
@@ -325,9 +325,12 @@ const PaymentPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Tất cả</option>
-                <option value="TIEN_PHONG">Tiền phòng</option>
-                <option value="TIEN_DIEN">Tiền điện</option>
-                <option value="TIEN_NUOC">Tiền nước</option>
+                <option value={PAYMENT_TYPE.TIEN_PHONG.key}>
+                  {PAYMENT_TYPE.TIEN_PHONG.value}
+                </option>
+                <option value={PAYMENT_TYPE.TIEN_DIEN_NUOC.key}>
+                  {PAYMENT_TYPE.TIEN_DIEN_NUOC.value}
+                </option>
               </select>
             </div>
 
@@ -457,7 +460,8 @@ const PaymentPage = () => {
                     Loại thanh toán
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {getTypeText(selectedPayment.LoaiThanhToan)}
+                    {PAYMENT_TYPE[selectedPayment.LoaiThanhToan]?.value ||
+                      selectedPayment.LoaiThanhToan}
                   </p>
                 </div>
                 <div>
@@ -465,7 +469,7 @@ const PaymentPage = () => {
                     Hình thức
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {convertMethodPayment(selectedPayment.HinhThuc)}
+                    {convertMethodPayment(selectedPayment.HinhThuc) || "-"}
                   </p>
                 </div>
                 <div>
@@ -509,7 +513,7 @@ const PaymentPage = () => {
                     OrderCode
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {selectedPayment.OrderCode}
+                    {selectedPayment.OrderCode || "-"}
                   </p>
                 </div>
                 <div>
@@ -517,7 +521,7 @@ const PaymentPage = () => {
                     Reference
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {selectedPayment.Reference}
+                    {selectedPayment.Reference || "-"}
                   </p>
                 </div>
                 <div className="col-span-2">
@@ -586,7 +590,11 @@ const PaymentPage = () => {
                 </h4>
                 <div className="space-y-2 text-sm">
                   <div>Sinh viên: {selectedPayment.SinhVien?.HoTen}</div>
-                  <div>Loại: {getTypeText(selectedPayment.LoaiThanhToan)}</div>
+                  <div>
+                    Loại:{" "}
+                    {PAYMENT_TYPE[selectedPayment.LoaiThanhToan]?.value ||
+                      selectedPayment.LoaiThanhToan}
+                  </div>
                   <div>Số tiền: {formatCurrency(selectedPayment.SoTien)}</div>
                   <div>Tháng: {selectedPayment.ThangNam}</div>
                 </div>

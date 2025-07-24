@@ -22,6 +22,8 @@ import { authService } from "../services/api";
 import registrationApprovalService from "../services/registrationApprovalService";
 import paymentService from "../services/paymentService";
 import { PAYMENT_STATUS } from "../constants/paymentFe";
+import yeuCauChuyenPhongService from "../services/api/yeuCauChuyenPhongService";
+import { YEU_CAU_CHUYEN_PHONG_STATUS } from "../constants/yeuCauChuyenPhongFe";
 
 const Layout = ({ children, navigation: navigationProp }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -31,7 +33,8 @@ const Layout = ({ children, navigation: navigationProp }) => {
   const [user, setUser] = useState(null);
   const [pendingCount, setPendingCount] = useState(0);
   const [paymentWaitingCount, setPaymentWaitingCount] = useState(0);
-
+  const [yeuCauChuyenPhongWaitingCount, setYeuCauChuyenPhongWaitingCount] =
+    useState(0);
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     setUser(currentUser);
@@ -39,6 +42,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
     // Load pending count if user is not a student
     if (currentUser && currentUser.VaiTro !== "SinhVien") {
       loadPendingCount();
+      loadYeuCauChuyenPhongWaitingCount();
     }
   }, []);
 
@@ -64,6 +68,20 @@ const Layout = ({ children, navigation: navigationProp }) => {
       }
     } catch (error) {
       console.error("Error loading payment waiting count:", error);
+    }
+  };
+
+  const loadYeuCauChuyenPhongWaitingCount = async () => {
+    try {
+      const response = await yeuCauChuyenPhongService.getYeuCauChuyenPhongList({
+        trangThai: YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.key,
+      });
+
+      if (response.success) {
+        setYeuCauChuyenPhongWaitingCount(response?.data.length || 0);
+      }
+    } catch (error) {
+      console.error("Error loading yeu cau chuyen phong waiting count:", error);
     }
   };
 
@@ -167,7 +185,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -229,6 +247,14 @@ const Layout = ({ children, navigation: navigationProp }) => {
                       {pendingCount > 99 ? "99+" : pendingCount}
                     </span>
                   )}
+                  {item.name === "Yêu cầu chuyển phòng" &&
+                    yeuCauChuyenPhongWaitingCount > 0 && (
+                      <span className="ml-auto inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full min-w-[20px]">
+                        {yeuCauChuyenPhongWaitingCount > 99
+                          ? "99+"
+                          : yeuCauChuyenPhongWaitingCount}
+                      </span>
+                    )}
                 </button>
               );
             })}
