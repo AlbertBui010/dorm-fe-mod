@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { Plus, Search, Edit2, Lock, Unlock, Trash2, Eye, Users, UserCheck, UserX, Mail, Phone, Calendar, User } from 'lucide-react';
-import { studentService } from '../services/api';
-import Layout from '../components/Layout';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Table from '../components/ui/Table';
-import Modal from '../components/ui/Modal';
-import Input from '../components/ui/Input';
-import Pagination from '../components/ui/Pagination';
-import { STUDENT_STATUS_FE } from '../constants/sinhvienFE';
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
+import {
+  Plus,
+  Search,
+  Edit2,
+  Lock,
+  Unlock,
+  Trash2,
+  Eye,
+  Users,
+  UserCheck,
+  UserX,
+  Mail,
+  Phone,
+  Calendar,
+  User,
+} from "lucide-react";
+import { studentService } from "../services/api";
+import Layout from "../components/Layout";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Table from "../components/ui/Table";
+import Modal from "../components/ui/Modal";
+import Input from "../components/ui/Input";
+import Pagination from "../components/ui/Pagination";
+import { STUDENT_STATUS_FE } from "../constants/sinhvienFE";
 
 const StudentManagementPage = () => {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedGender, setSelectedGender] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGender, setSelectedGender] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -29,15 +44,15 @@ const StudentManagementPage = () => {
 
   // Form data
   const [formData, setFormData] = useState({
-    MaSinhVien: '',
-    HoTen: '',
-    NgaySinh: '',
-    GioiTinh: 'Nam',
-    SoDienThoai: '',
-    Email: '',
-    MatKhau: '',
+    MaSinhVien: "",
+    HoTen: "",
+    NgaySinh: "",
+    GioiTinh: "Nam",
+    SoDienThoai: "",
+    Email: "",
+    MatKhau: "",
     EmailDaXacThuc: false,
-    TrangThai: 'HoatDong'
+    TrangThai: STUDENT_STATUS_FE.DANG_KY.key,
   });
 
   useEffect(() => {
@@ -62,8 +77,8 @@ const StudentManagementPage = () => {
         setTotalPages(response.pagination?.totalPages || 1);
       }
     } catch (error) {
-      console.error('Error loading students:', error);
-      toast.error('Không thể tải danh sách sinh viên');
+      console.error("Error loading students:", error);
+      toast.error("Không thể tải danh sách sinh viên");
     } finally {
       setLoading(false);
     }
@@ -76,30 +91,30 @@ const StudentManagementPage = () => {
         setStats(response.data || {});
       }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error("Error loading stats:", error);
     }
   };
 
   // Form handlers
   const resetForm = () => {
     setFormData({
-      MaSinhVien: '',
-      HoTen: '',
-      NgaySinh: '',
-      GioiTinh: 'Nam',
-      SoDienThoai: '',
-      Email: '',
-      MatKhau: '',
+      MaSinhVien: "",
+      HoTen: "",
+      NgaySinh: "",
+      GioiTinh: "Nam",
+      SoDienThoai: "",
+      Email: "",
+      MatKhau: "",
       EmailDaXacThuc: false,
-      TrangThai: 'HoatDong'
+      TrangThai: STUDENT_STATUS_FE.DANG_KY.key,
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -125,15 +140,17 @@ const StudentManagementPage = () => {
     try {
       const response = await studentService.create(formData);
       if (response.success) {
-        toast.success('Tạo sinh viên thành công');
+        toast.success("Tạo sinh viên thành công");
         setShowCreateModal(false);
         resetForm();
         loadStudents();
         loadStats();
       }
     } catch (error) {
-      console.error('Error creating student:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo sinh viên');
+      console.error("Error creating student:", error);
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi tạo sinh viên"
+      );
     }
   };
 
@@ -142,23 +159,28 @@ const StudentManagementPage = () => {
     try {
       // Exclude MaSinhVien from update data
       const { MaSinhVien, ...updateData } = formData;
-      
+
       // Remove MatKhau if it's empty (don't want to change password)
-      if (!updateData.MatKhau || updateData.MatKhau.trim() === '') {
+      if (!updateData.MatKhau || updateData.MatKhau.trim() === "") {
         delete updateData.MatKhau;
       }
-      
-      const response = await studentService.update(selectedStudent.MaSinhVien, updateData);
+
+      const response = await studentService.update(
+        selectedStudent.MaSinhVien,
+        updateData
+      );
       if (response.success) {
-        toast.success('Cập nhật sinh viên thành công');
+        toast.success("Cập nhật sinh viên thành công");
         setShowEditModal(false);
         resetForm();
         setSelectedStudent(null);
         loadStudents();
       }
     } catch (error) {
-      console.error('Error updating student:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật sinh viên');
+      console.error("Error updating student:", error);
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật sinh viên"
+      );
     }
   };
 
@@ -166,13 +188,19 @@ const StudentManagementPage = () => {
     try {
       const response = await studentService.toggleStatus(student.MaSinhVien);
       if (response.success) {
-        toast.success(`${student.TrangThai === 'HoatDong' ? 'Vô hiệu hóa' : 'Kích hoạt'} sinh viên thành công`);
+        toast.success(
+          `${
+            student.TrangThai === STUDENT_STATUS_FE.DANG_KY.key
+              ? "Vô hiệu hóa"
+              : "Kích hoạt"
+          } sinh viên thành công`
+        );
         loadStudents();
         loadStats();
       }
     } catch (error) {
-      console.error('Error toggling student status:', error);
-      toast.error('Có lỗi xảy ra khi thay đổi trạng thái sinh viên');
+      console.error("Error toggling student status:", error);
+      toast.error("Có lỗi xảy ra khi thay đổi trạng thái sinh viên");
     }
   };
 
@@ -180,7 +208,7 @@ const StudentManagementPage = () => {
     try {
       const response = await studentService.delete(selectedStudent.MaSinhVien);
       if (response.success) {
-        toast.success('Xóa sinh viên thành công');
+        toast.success("Xóa sinh viên thành công");
         setShowDeleteModal(false);
         setSelectedStudent(null);
         setRelatedRecords(null);
@@ -188,22 +216,26 @@ const StudentManagementPage = () => {
         loadStats();
       }
     } catch (error) {
-      console.error('Error deleting student:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi xóa sinh viên');
+      console.error("Error deleting student:", error);
+      toast.error(
+        error.response?.data?.message || "Có lỗi xảy ra khi xóa sinh viên"
+      );
     }
   };
 
   const checkRelatedRecords = async (student) => {
     try {
-      const response = await studentService.checkRelatedRecords(student.MaSinhVien);
+      const response = await studentService.checkRelatedRecords(
+        student.MaSinhVien
+      );
       if (response.success) {
         setRelatedRecords(response.data);
         setSelectedStudent(student);
         setShowDeleteModal(true);
       }
     } catch (error) {
-      console.error('Error checking related records:', error);
-      toast.error('Có lỗi xảy ra khi kiểm tra dữ liệu liên quan');
+      console.error("Error checking related records:", error);
+      toast.error("Có lỗi xảy ra khi kiểm tra dữ liệu liên quan");
     }
   };
 
@@ -211,10 +243,10 @@ const StudentManagementPage = () => {
     try {
       const response = await studentService.checkIn(student.MaSinhVien);
       if (response.success) {
-        toast.success('Xác nhận nhận phòng thành công');
+        toast.success("Xác nhận nhận phòng thành công");
         // Cập nhật lại students trong state
-        setStudents(prev =>
-          prev.map(sv =>
+        setStudents((prev) =>
+          prev.map((sv) =>
             sv.MaSinhVien === student.MaSinhVien
               ? { ...sv, ...response.data } // cập nhật trạng thái và các field mới
               : sv
@@ -224,7 +256,9 @@ const StudentManagementPage = () => {
         loadStats();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi khi xác nhận nhận phòng');
+      toast.error(
+        error.response?.data?.message || "Có lỗi khi xác nhận nhận phòng"
+      );
     }
   };
 
@@ -232,12 +266,14 @@ const StudentManagementPage = () => {
     try {
       const response = await studentService.checkOut(student.MaSinhVien);
       if (response.data.success) {
-        toast.success('Xác nhận ngưng ở thành công');
+        toast.success("Xác nhận ngưng ở thành công");
         loadStudents();
         loadStats();
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Có lỗi khi xác nhận ngưng ở');
+      toast.error(
+        error.response?.data?.message || "Có lỗi khi xác nhận ngưng ở"
+      );
     }
   };
 
@@ -252,13 +288,13 @@ const StudentManagementPage = () => {
     setFormData({
       MaSinhVien: student.MaSinhVien,
       HoTen: student.HoTen,
-      NgaySinh: student.NgaySinh || '',
-      GioiTinh: student.GioiTinh || 'Nam',
-      SoDienThoai: student.SoDienThoai || '',
-      Email: student.Email || '',
-      MatKhau: '', // Don't populate password
+      NgaySinh: student.NgaySinh || "",
+      GioiTinh: student.GioiTinh || "Nam",
+      SoDienThoai: student.SoDienThoai || "",
+      Email: student.Email || "",
+      MatKhau: "", // Don't populate password
       EmailDaXacThuc: student.EmailDaXacThuc || false,
-      TrangThai: student.TrangThai || 'HoatDong'
+      TrangThai: student.TrangThai || STUDENT_STATUS_FE.DANG_KY.key,
     });
     setShowEditModal(true);
   };
@@ -281,91 +317,103 @@ const StudentManagementPage = () => {
   // Table columns
   const columns = [
     {
-      key: 'MaSinhVien',
-      header: 'Mã SV',
-      render: (value, row) => <span className="font-mono text-sm">{value}</span>
-    },
-    {
-      key: 'HoTen',
-      header: 'Họ tên',
-      render: (value, row) => <span className="font-medium">{value}</span>
-    },
-    {
-      key: 'GioiTinh',
-      header: 'Giới tính',
+      key: "MaSinhVien",
+      header: "Mã SV",
       render: (value, row) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          value === 'Nam' ? 'bg-blue-100 text-blue-800' :
-          value === 'Nữ' ? 'bg-pink-100 text-pink-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
+        <span className="font-mono text-sm">{value}</span>
+      ),
+    },
+    {
+      key: "HoTen",
+      header: "Họ tên",
+      render: (value, row) => <span className="font-medium">{value}</span>,
+    },
+    {
+      key: "GioiTinh",
+      header: "Giới tính",
+      render: (value, row) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            value === "Nam"
+              ? "bg-blue-100 text-blue-800"
+              : value === "Nữ"
+              ? "bg-pink-100 text-pink-800"
+              : "bg-gray-100 text-gray-800"
+          }`}
+        >
           {value}
         </span>
-      )
+      ),
     },
     {
-      key: 'Email',
-      header: 'Email',
+      key: "Email",
+      header: "Email",
       render: (value, row) => (
         <div className="flex items-center gap-2">
-          <span className="text-sm">{value || 'Chưa có'}</span>
+          <span className="text-sm">{value || "Chưa có"}</span>
           {row.EmailDaXacThuc && (
             <span className="text-green-500" title="Email đã xác thực">
               <Mail className="h-4 w-4" />
             </span>
           )}
         </div>
-      )
+      ),
     },
     {
-      key: 'SoDienThoai',
-      header: 'Số ĐT',
-      render: (value, row) => value || 'Chưa có'
+      key: "SoDienThoai",
+      header: "Số ĐT",
+      render: (value, row) => value || "Chưa có",
     },
     {
-      key: 'TrangThai',
-      header: 'Trạng thái',
+      key: "TrangThai",
+      header: "Trạng thái",
       render: (value, row) => {
-        let label = '';
-        let colorClass = '';
+        let label = "";
+        let colorClass = "";
 
         switch (value) {
           case STUDENT_STATUS_FE.DANG_O.key:
             label = STUDENT_STATUS_FE.DANG_O.value;
-            colorClass = 'bg-green-100 text-green-800';
+            colorClass = "bg-green-100 text-green-800";
             break;
           case STUDENT_STATUS_FE.NGUNG_O.key:
             label = STUDENT_STATUS_FE.NGUNG_O.value;
-            colorClass = 'bg-red-100 text-red-800';
+            colorClass = "bg-red-100 text-red-800";
             break;
 
           case STUDENT_STATUS_FE.DANG_KY.key:
             label = STUDENT_STATUS_FE.DANG_KY.value;
-            colorClass = 'bg-blue-100 text-blue-800';
+            colorClass = "bg-blue-100 text-blue-800";
             break;
           case STUDENT_STATUS_FE.CHO_NHAN_PHONG.key:
             label = STUDENT_STATUS_FE.CHO_NHAN_PHONG.value;
-            colorClass = 'bg-green-100 text-green-800';
+            colorClass = "bg-green-100 text-green-800";
             break;
           case STUDENT_STATUS_FE.VI_PHAM.key:
             label = STUDENT_STATUS_FE.VI_PHAM.value;
-            colorClass = 'bg-red-100 text-red-800';
+            colorClass = "bg-red-100 text-red-800";
+            break;
+          case STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key:
+            label = STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value;
+            colorClass = "bg-yellow-100 text-yellow-800";
             break;
           default:
             label = value;
-            colorClass = 'bg-gray-100 text-gray-800';
+            colorClass = "bg-gray-100 text-gray-800";
         }
 
         return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+          >
             {label}
           </span>
         );
-      }
+      },
     },
     {
-      key: 'actions',
-      header: 'Thao tác',
+      key: "actions",
+      header: "Thao tác",
       render: (value, row) => (
         <div className="flex items-center gap-2">
           <Button
@@ -388,9 +436,17 @@ const StudentManagementPage = () => {
             variant="ghost"
             size="sm"
             onClick={() => handleToggleStatus(row)}
-            className={row.TrangThai === 'HoatDong' ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800'}
+            className={
+              row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key
+                ? "text-orange-600 hover:text-orange-800"
+                : "text-green-600 hover:text-green-800"
+            }
           >
-            {row.TrangThai === 'HoatDong' ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+            {row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key ? (
+              <Lock className="h-4 w-4" />
+            ) : (
+              <Unlock className="h-4 w-4" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -405,7 +461,10 @@ const StudentManagementPage = () => {
             size="sm"
             onClick={() => handleCheckIn(row)}
             className="text-green-600 hover:text-green-800"
-            disabled={row.TrangThai === STUDENT_STATUS_FE.DANG_O.key || row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key}
+            disabled={
+              row.TrangThai === STUDENT_STATUS_FE.DANG_O.key ||
+              row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key
+            }
           >
             <UserCheck className="h-4 w-4" />
             Nhận phòng
@@ -421,8 +480,8 @@ const StudentManagementPage = () => {
             Ngưng ở
           </Button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   return (
@@ -431,8 +490,12 @@ const StudentManagementPage = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý Sinh viên</h1>
-            <p className="text-gray-600">Quản lý thông tin sinh viên trong hệ thống</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Quản lý Sinh viên
+            </h1>
+            <p className="text-gray-600">
+              Quản lý thông tin sinh viên trong hệ thống
+            </p>
           </div>
           <Button onClick={openCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
@@ -446,28 +509,40 @@ const StudentManagementPage = () => {
             <div className="flex items-center">
               <Users className="w-8 h-8 text-blue-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Tổng sinh viên</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total || 0}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng sinh viên
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total || 0}
+                </p>
               </div>
             </div>
           </Card>
-          
+
           <Card className="p-4">
             <div className="flex items-center">
               <UserCheck className="w-8 h-8 text-green-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Đang hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active || 0}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Đang hoạt động
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.active || 0}
+                </p>
               </div>
             </div>
           </Card>
-          
+
           <Card className="p-4">
             <div className="flex items-center">
               <UserX className="w-8 h-8 text-red-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Không hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.inactive || 0}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Không hoạt động
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.inactive || 0}
+                </p>
               </div>
             </div>
           </Card>
@@ -476,8 +551,12 @@ const StudentManagementPage = () => {
             <div className="flex items-center">
               <Mail className="w-8 h-8 text-blue-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Email đã xác thực</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.verified || 0}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Email đã xác thực
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.verified || 0}
+                </p>
               </div>
             </div>
           </Card>
@@ -495,7 +574,7 @@ const StudentManagementPage = () => {
                 className="pl-10"
               />
             </div>
-            
+
             <select
               value={selectedGender}
               onChange={handleGenderFilter}
@@ -506,26 +585,39 @@ const StudentManagementPage = () => {
               <option value="Nữ">Nữ</option>
               <option value="Khác">Khác</option>
             </select>
-            
+
             <select
               value={selectedStatus}
               onChange={handleStatusFilter}
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
-              <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
-              <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
-              <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
-              <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
+              <option value={STUDENT_STATUS_FE.DANG_O.key}>
+                {STUDENT_STATUS_FE.DANG_O.value}
+              </option>
+              <option value={STUDENT_STATUS_FE.NGUNG_O.key}>
+                {STUDENT_STATUS_FE.NGUNG_O.value}
+              </option>
+              <option value={STUDENT_STATUS_FE.DANG_KY.key}>
+                {STUDENT_STATUS_FE.DANG_KY.value}
+              </option>
+              <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>
+                {STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}
+              </option>
+              <option value={STUDENT_STATUS_FE.VI_PHAM.key}>
+                {STUDENT_STATUS_FE.VI_PHAM.value}
+              </option>
+              <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>
+                {STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}
+              </option>
             </select>
 
             <Button
               variant="outline"
               onClick={() => {
-                setSearchTerm('');
-                setSelectedGender('');
-                setSelectedStatus('');
+                setSearchTerm("");
+                setSelectedGender("");
+                setSelectedStatus("");
                 setCurrentPage(1);
               }}
             >
@@ -542,7 +634,7 @@ const StudentManagementPage = () => {
             loading={loading}
             emptyMessage="Không có sinh viên nào"
           />
-          
+
           {totalPages > 1 && (
             <Pagination
               currentPage={currentPage}
@@ -575,7 +667,7 @@ const StudentManagementPage = () => {
                   maxLength={10}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Họ tên <span className="text-red-500">*</span>
@@ -588,7 +680,7 @@ const StudentManagementPage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ngày sinh
@@ -600,7 +692,7 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giới tính
@@ -616,7 +708,7 @@ const StudentManagementPage = () => {
                   <option value="Khác">Khác</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Số điện thoại
@@ -628,7 +720,7 @@ const StudentManagementPage = () => {
                   placeholder="Nhập số điện thoại"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
@@ -641,7 +733,7 @@ const StudentManagementPage = () => {
                   placeholder="Nhập email"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Mật khẩu
@@ -654,7 +746,7 @@ const StudentManagementPage = () => {
                   placeholder="Nhập mật khẩu (tùy chọn)"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Trạng thái
@@ -667,10 +759,14 @@ const StudentManagementPage = () => {
                 >
                   <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
                   <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
+                  <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
+                  <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
+                  <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>{STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}</option>
                 </select>
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -683,14 +779,12 @@ const StudentManagementPage = () => {
                 Email đã được xác thực
               </label>
             </div>
-            
+
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={closeModals}>
                 Hủy
               </Button>
-              <Button type="submit">
-                Thêm sinh viên
-              </Button>
+              <Button type="submit">Thêm sinh viên</Button>
             </div>
           </form>
         </Modal>
@@ -714,9 +808,11 @@ const StudentManagementPage = () => {
                   disabled
                   className="bg-gray-100"
                 />
-                <p className="text-xs text-gray-500 mt-1">Mã sinh viên không thể thay đổi</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  Mã sinh viên không thể thay đổi
+                </p>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Họ tên <span className="text-red-500">*</span>
@@ -729,7 +825,7 @@ const StudentManagementPage = () => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ngày sinh
@@ -741,7 +837,7 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giới tính
@@ -757,7 +853,7 @@ const StudentManagementPage = () => {
                   <option value="Khác">Khác</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Số điện thoại
@@ -769,7 +865,7 @@ const StudentManagementPage = () => {
                   placeholder="Nhập số điện thoại"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Email
@@ -782,7 +878,7 @@ const StudentManagementPage = () => {
                   placeholder="Nhập email"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Mật khẩu mới
@@ -795,7 +891,7 @@ const StudentManagementPage = () => {
                   placeholder="Để trống nếu không đổi"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Trạng thái
@@ -808,10 +904,14 @@ const StudentManagementPage = () => {
                 >
                   <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
                   <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
+                  <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
+                  <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
+                  <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>{STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}</option>
                 </select>
               </div>
             </div>
-            
+
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -824,14 +924,12 @@ const StudentManagementPage = () => {
                 Email đã được xác thực
               </label>
             </div>
-            
+
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={closeModals}>
                 Hủy
               </Button>
-              <Button type="submit">
-                Cập nhật
-              </Button>
+              <Button type="submit">Cập nhật</Button>
             </div>
           </form>
         </Modal>
@@ -848,80 +946,116 @@ const StudentManagementPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Mã sinh viên</label>
-                    <p className="text-lg font-mono">{selectedStudent.MaSinhVien}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Họ tên</label>
-                    <p className="text-lg font-medium">{selectedStudent.HoTen}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500">Ngày sinh</label>
-                    <p className="text-lg flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {selectedStudent.NgaySinh ? new Date(selectedStudent.NgaySinh).toLocaleDateString('vi-VN') : 'Chưa có'}
+                    <label className="block text-sm font-medium text-gray-500">
+                      Mã sinh viên
+                    </label>
+                    <p className="text-lg font-mono">
+                      {selectedStudent.MaSinhVien}
                     </p>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Giới tính</label>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Họ tên
+                    </label>
+                    <p className="text-lg font-medium">
+                      {selectedStudent.HoTen}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Ngày sinh
+                    </label>
+                    <p className="text-lg flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {selectedStudent.NgaySinh
+                        ? new Date(selectedStudent.NgaySinh).toLocaleDateString(
+                            "vi-VN"
+                          )
+                        : "Chưa có"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Giới tính
+                    </label>
                     <p className="text-lg flex items-center gap-2">
                       <User className="h-4 w-4" />
-                      {selectedStudent.GioiTinh || 'Chưa xác định'}
+                      {selectedStudent.GioiTinh || "Chưa xác định"}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Email</label>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Email
+                    </label>
                     <p className="text-lg flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      {selectedStudent.Email || 'Chưa có'}
+                      {selectedStudent.Email || "Chưa có"}
                       {selectedStudent.EmailDaXacThuc && (
-                        <span className="text-green-500 text-sm">(Đã xác thực)</span>
+                        <span className="text-green-500 text-sm">
+                          (Đã xác thực)
+                        </span>
                       )}
                     </p>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Số điện thoại</label>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Số điện thoại
+                    </label>
                     <p className="text-lg flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      {selectedStudent.SoDienThoai || 'Chưa có'}
+                      {selectedStudent.SoDienThoai || "Chưa có"}
                     </p>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Trạng thái</label>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedStudent.TrangThai === STUDENT_STATUS_FE.DANG_O.key 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {STUDENT_STATUS_FE[selectedStudent.TrangThai]?.value || selectedStudent.TrangThai}
+                    <label className="block text-sm font-medium text-gray-500">
+                      Trạng thái
+                    </label>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                        selectedStudent.TrangThai ===
+                        STUDENT_STATUS_FE.DANG_O.key
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {STUDENT_STATUS_FE[selectedStudent.TrangThai]?.value ||
+                        selectedStudent.TrangThai}
                     </span>
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-500">Ngày tạo</label>
+                    <label className="block text-sm font-medium text-gray-500">
+                      Ngày tạo
+                    </label>
                     <p className="text-lg">
-                      {selectedStudent.NgayTao ? new Date(selectedStudent.NgayTao).toLocaleString('vi-VN') : 'Chưa có'}
+                      {selectedStudent.NgayTao
+                        ? new Date(selectedStudent.NgayTao).toLocaleString(
+                            "vi-VN"
+                          )
+                        : "Chưa có"}
                     </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 pt-4">
                 <Button variant="outline" onClick={closeModals}>
                   Đóng
                 </Button>
-                <Button onClick={() => {
-                  closeModals();
-                  openEditModal(selectedStudent);
-                }}>
+                <Button
+                  onClick={() => {
+                    closeModals();
+                    openEditModal(selectedStudent);
+                  }}
+                >
                   Chỉnh sửa
                 </Button>
               </div>
@@ -940,8 +1074,16 @@ const StudentManagementPage = () => {
               <div className="bg-red-50 border border-red-200 rounded-md p-4">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -949,7 +1091,11 @@ const StudentManagementPage = () => {
                       Cảnh báo xóa sinh viên
                     </h3>
                     <div className="mt-2 text-sm text-red-700">
-                      <p>Bạn có chắc chắn muốn xóa sinh viên <strong>{selectedStudent.HoTen}</strong> (Mã SV: {selectedStudent.MaSinhVien})?</p>
+                      <p>
+                        Bạn có chắc chắn muốn xóa sinh viên{" "}
+                        <strong>{selectedStudent.HoTen}</strong> (Mã SV:{" "}
+                        {selectedStudent.MaSinhVien})?
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -959,8 +1105,16 @@ const StudentManagementPage = () => {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                   <div className="flex">
                     <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="h-5 w-5 text-yellow-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <div className="ml-3">
@@ -968,8 +1122,16 @@ const StudentManagementPage = () => {
                         Không thể xóa sinh viên
                       </h3>
                       <div className="mt-2 text-sm text-yellow-700">
-                        <p>Sinh viên này còn có dữ liệu liên quan trong các bảng: <strong>{relatedRecords.relatedTables.join(', ')}</strong></p>
-                        <p className="mt-1">Vui lòng xóa hoặc chuyển đổi dữ liệu liên quan trước khi xóa sinh viên.</p>
+                        <p>
+                          Sinh viên này còn có dữ liệu liên quan trong các bảng:{" "}
+                          <strong>
+                            {relatedRecords.relatedTables.join(", ")}
+                          </strong>
+                        </p>
+                        <p className="mt-1">
+                          Vui lòng xóa hoặc chuyển đổi dữ liệu liên quan trước
+                          khi xóa sinh viên.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -980,8 +1142,8 @@ const StudentManagementPage = () => {
                 <Button variant="outline" onClick={closeModals}>
                   Hủy
                 </Button>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   onClick={handleDelete}
                   disabled={relatedRecords && relatedRecords.hasRelatedRecords}
                 >

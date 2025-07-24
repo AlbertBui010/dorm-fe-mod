@@ -27,6 +27,9 @@ const RoomManagementPage = () => {
     trangThai: ''
   });
 
+  // Đổi tên biến filterStatus thành filterRoomStatus cho rõ nghĩa
+  const [filterRoomStatus, setFilterRoomStatus] = useState('');
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -271,19 +274,20 @@ const RoomManagementPage = () => {
   // Get status badge
   const getStatusBadge = (status, currentCount = 0, capacity = 0) => {
     try {
-      // Ensure we have valid values
-      const safeStatus = String(status || 'Hoạt động');
+      const safeStatus = String(status || PHONG_STATUS_FE.HOAT_DONG.value);
       const safeCurrentCount = Number(currentCount) || 0;
       const safeCapacity = Number(capacity) || 0;
 
       let statusText = safeStatus;
       let colorClass = 'bg-green-100 text-green-800';
 
-      if (safeStatus === 'Bảo trì') {
+      if (status === PHONG_STATUS_FE.BAO_TRI.key || status === PHONG_STATUS_FE.BAO_TRI.value) {
+        statusText = PHONG_STATUS_FE.BAO_TRI.value;
         colorClass = 'bg-yellow-100 text-yellow-800';
-      } else if (safeStatus === 'Đã đóng') {
+      } else if (status === PHONG_STATUS_FE.KHOA.key || status === PHONG_STATUS_FE.KHOA.value) {
+        statusText = PHONG_STATUS_FE.KHOA.value;
         colorClass = 'bg-red-100 text-red-800';
-      } else if (safeCurrentCount >= safeCapacity && safeCapacity > 0) {
+      } else if ((status === PHONG_STATUS_FE.HOAT_DONG.key || status === PHONG_STATUS_FE.HOAT_DONG.value) && safeCurrentCount >= safeCapacity && safeCapacity > 0) {
         statusText = 'Đầy';
         colorClass = 'bg-red-100 text-red-800';
       } else if (safeCurrentCount > 0) {
@@ -362,6 +366,24 @@ const RoomManagementPage = () => {
       }
     },
     {
+      key: 'TrangThai',
+      title: 'Trạng thái phòng',
+      render: (value) => {
+        let colorClass = 'bg-green-100 text-green-800';
+        let text = PHONG_STATUS_FE.HOAT_DONG.value;
+        if (value === PHONG_STATUS_FE.KHOA.key) {
+          colorClass = 'bg-red-100 text-red-800';
+          text = PHONG_STATUS_FE.KHOA.value;
+        } else if (value === PHONG_STATUS_FE.BAO_TRI.key) {
+          colorClass = 'bg-yellow-100 text-yellow-800';
+          text = PHONG_STATUS_FE.BAO_TRI.value;
+        }
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>{text}</span>
+        );
+      }
+    },
+    {
       key: 'actions',
       title: 'Thao tác',
       render: (_, room) => (
@@ -394,6 +416,24 @@ const RoomManagementPage = () => {
       )
     }
   ];
+
+  // Thay đổi logic filteredRooms
+  const filteredRooms = rooms.filter(room => {
+    if (!filterRoomStatus) return true;
+    const occupiedBeds = room.Giuongs ? room.Giuongs.filter(g => g.DaCoNguoi).length : (room.SoLuongHienTai || 0);
+    const sucChua = room.SucChua || 0;
+    if (room.TrangThai !== PHONG_STATUS_FE.HOAT_DONG.key) return false;
+    if (filterRoomStatus === 'full') {
+      return occupiedBeds >= sucChua && sucChua > 0;
+    }
+    if (filterRoomStatus === 'available') {
+      return occupiedBeds > 0 && occupiedBeds < sucChua;
+    }
+    if (filterRoomStatus === 'empty') {
+      return occupiedBeds === 0;
+    }
+    return true;
+  });
 
   return (
     <Layout>
@@ -436,7 +476,7 @@ const RoomManagementPage = () => {
                 <p className="text-2xl font-bold text-green-600">
                   {rooms.filter(r => {
                     const occupiedBeds = r.Giuongs ? r.Giuongs.filter(g => g.DaCoNguoi).length : (r?.SoLuongHienTai || 0);
-                    return occupiedBeds === 0 && (r?.TrangThai || 'Hoạt động') === 'Hoạt động';
+                    return occupiedBeds === 0 && (r?.TrangThai === PHONG_STATUS_FE.HOAT_DONG.key);
                   }).length}
                 </p>
               </div>
@@ -450,7 +490,7 @@ const RoomManagementPage = () => {
                 <p className="text-2xl font-bold text-red-600">
                   {rooms.filter(r => {
                     const occupiedBeds = r.Giuongs ? r.Giuongs.filter(g => g.DaCoNguoi).length : (r?.SoLuongHienTai || 0);
-                    return occupiedBeds >= (r?.SucChua || 0);
+                    return occupiedBeds >= (r?.SucChua || 0) && (r?.TrangThai === PHONG_STATUS_FE.HOAT_DONG.key);
                   }).length}
                 </p>
               </div>
@@ -462,7 +502,7 @@ const RoomManagementPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Bảo trì</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {rooms.filter(r => (r?.TrangThai || 'Hoạt động') === 'Bảo trì').length}
+                  {rooms.filter(r => r?.TrangThai === PHONG_STATUS_FE.BAO_TRI.key).length}
                 </p>
               </div>
               <Building className="w-8 h-8 text-yellow-500" />
@@ -501,9 +541,23 @@ const RoomManagementPage = () => {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Tất cả trạng thái</option>
-                <option value="available">Còn chỗ trống</option>
-                <option value="full">Đầy</option>
+                <option value={PHONG_STATUS_FE.HOAT_DONG.key}>{PHONG_STATUS_FE.HOAT_DONG.value}</option>
+                <option value={PHONG_STATUS_FE.KHOA.key}>{PHONG_STATUS_FE.KHOA.value}</option>
+                <option value={PHONG_STATUS_FE.BAO_TRI.key}>{PHONG_STATUS_FE.BAO_TRI.value}</option>
               </select>
+
+              <div>
+                <select
+                  value={filterRoomStatus}
+                  onChange={e => setFilterRoomStatus(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Tất cả trạng thái sử dụng</option>
+                  <option value="available">Còn chỗ</option>
+                  <option value="full">Đầy</option>
+                  <option value="empty">Trống</option>
+                </select>
+              </div>
             </div>
 
             <Button
@@ -521,7 +575,7 @@ const RoomManagementPage = () => {
           <div className="p-4">
             <Table
               columns={columns}
-              data={rooms}
+              data={filteredRooms}
               loading={loading}
               emptyMessage="Không có phòng nào"
             />
@@ -630,6 +684,7 @@ const RoomManagementPage = () => {
               >
                 <option value={PHONG_STATUS_FE.HOAT_DONG.key}>{PHONG_STATUS_FE.HOAT_DONG.value}</option>
                 <option value={PHONG_STATUS_FE.KHOA.key}>{PHONG_STATUS_FE.KHOA.value}</option>
+                <option value={PHONG_STATUS_FE.BAO_TRI.key}>{PHONG_STATUS_FE.BAO_TRI.value}</option>
               </select>
             </div>
           </div>
@@ -767,6 +822,7 @@ const RoomManagementPage = () => {
               >
                 <option value={PHONG_STATUS_FE.HOAT_DONG.key}>{PHONG_STATUS_FE.HOAT_DONG.value}</option>
                 <option value={PHONG_STATUS_FE.KHOA.key}>{PHONG_STATUS_FE.KHOA.value}</option>
+                <option value={PHONG_STATUS_FE.BAO_TRI.key}>{PHONG_STATUS_FE.BAO_TRI.value}</option>
               </select>
             </div>
           </div>

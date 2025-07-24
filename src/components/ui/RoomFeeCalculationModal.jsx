@@ -1,6 +1,11 @@
-import React from 'react';
+import React from "react";
 
-const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName }) => {
+const RoomFeeCalculationModal = ({
+  isOpen,
+  onClose,
+  feeCalculation,
+  studentName,
+}) => {
   if (!isOpen || !feeCalculation) return null;
 
   const { chiTiet, soTien, tongSoThang, giaThueThang } = feeCalculation;
@@ -33,7 +38,7 @@ const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName 
             <div>
               <p className="text-sm text-gray-600">Giá thuê tháng:</p>
               <p className="font-semibold text-blue-600">
-                {giaThueThang?.toLocaleString('vi-VN')} VNĐ
+                {giaThueThang?.toLocaleString("vi-VN")} VNĐ
               </p>
             </div>
             <div>
@@ -58,11 +63,21 @@ const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName 
             <table className="w-full border-collapse border border-gray-300">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border border-gray-300 p-3 text-left">Tháng</th>
-                  <th className="border border-gray-300 p-3 text-center">Ngày bắt đầu</th>
-                  <th className="border border-gray-300 p-3 text-center">Hệ số</th>
-                  <th className="border border-gray-300 p-3 text-right">Công thức</th>
-                  <th className="border border-gray-300 p-3 text-right">Tiền tháng</th>
+                  <th className="border border-gray-300 p-3 text-left">
+                    Tháng
+                  </th>
+                  <th className="border border-gray-300 p-3 text-center">
+                    Ngày bắt đầu
+                  </th>
+                  <th className="border border-gray-300 p-3 text-center">
+                    Hệ số
+                  </th>
+                  <th className="border border-gray-300 p-3 text-right">
+                    Công thức
+                  </th>
+                  <th className="border border-gray-300 p-3 text-right">
+                    Tiền tháng
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -75,19 +90,23 @@ const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName 
                       Ngày {thang.ngayTrongThang}
                     </td>
                     <td className="border border-gray-300 p-3 text-center">
-                      <span className={`px-2 py-1 rounded text-sm font-semibold ${
-                        thang.heSoThang === 1 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {thang.heSoThang === 1 ? '1.0 (đủ tháng)' : '0.5 (nửa tháng)'}
+                      <span
+                        className={`px-2 py-1 rounded text-sm font-semibold ${
+                          thang.heSoThang === 1
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {thang.heSoThang === 1
+                          ? "1.0 (đủ tháng)"
+                          : "0.5 (nửa tháng)"}
                       </span>
                     </td>
                     <td className="border border-gray-300 p-3 text-right text-sm text-gray-600">
                       {thang.tinhToan}
                     </td>
                     <td className="border border-gray-300 p-3 text-right font-semibold">
-                      {thang.tienThang?.toLocaleString('vi-VN')} VNĐ
+                      {thang.tienThang?.toLocaleString("vi-VN")} VNĐ
                     </td>
                   </tr>
                 ))}
@@ -102,10 +121,19 @@ const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName 
             📝 Quy tắc tính tiền
           </h3>
           <ul className="text-sm text-yellow-700 space-y-1">
-            <li>• <strong>Ngày &lt; 15:</strong> Hệ số = 1.0 (tính đủ tháng)</li>
-            <li>• <strong>Ngày ≥ 15:</strong> Hệ số = 0.5 (tính nửa tháng)</li>
-            <li>• <strong>Tháng tiếp theo:</strong> Luôn bắt đầu từ ngày 1 (hệ số 1.0)</li>
-            <li>• <strong>1 Quý:</strong> Bằng tổng hệ số của 3 tháng</li>
+            <li>
+              • <strong>Ngày &lt; 15:</strong> Hệ số = 1.0 (tính đủ tháng)
+            </li>
+            <li>
+              • <strong>Ngày ≥ 15:</strong> Hệ số = 0.5 (tính nửa tháng)
+            </li>
+            <li>
+              • <strong>Tháng tiếp theo:</strong> Luôn bắt đầu từ ngày 1 (hệ số
+              1.0)
+            </li>
+            <li>
+              • <strong>1 Quý:</strong> Bằng tổng hệ số của 3 tháng
+            </li>
           </ul>
         </div>
 
@@ -116,7 +144,7 @@ const RoomFeeCalculationModal = ({ isOpen, onClose, feeCalculation, studentName 
               💵 Tổng tiền cần thanh toán
             </h3>
             <p className="text-2xl font-bold text-green-600">
-              {soTien?.toLocaleString('vi-VN')} VNĐ
+              {soTien?.toLocaleString("vi-VN")} VNĐ
             </p>
           </div>
         </div>
