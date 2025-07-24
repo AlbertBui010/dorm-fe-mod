@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { AlertCircle, UserPlus, Mail, Phone, Calendar, User, CreditCard } from 'lucide-react';
+import { AlertCircle, Mail, Phone, Calendar, User, CreditCard } from 'lucide-react';
 import registrationApi from '../services/api/registrationApi';
 
 const RegisterPage = () => {

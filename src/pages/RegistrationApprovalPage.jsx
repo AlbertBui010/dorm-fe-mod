@@ -9,7 +9,7 @@ import { Badge } from "../components/ui/Badge";
 import Table from "../components/ui/Table";
 import Modal from "../components/ui/Modal";
 import Pagination from "../components/ui/Pagination";
-import { DANG_KY_STATUS } from "../constants/dangKyFe";
+import { DANG_KY_STATUS } from "../constants/dangkyFe";
 import registrationApprovalService from "../services/registrationApprovalService";
 import RoomFeeCalculationModal from "../components/ui/RoomFeeCalculationModal";
 
