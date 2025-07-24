@@ -393,6 +393,10 @@ const StudentManagementPage = () => {
             label = STUDENT_STATUS_FE.VI_PHAM.value;
             colorClass = "bg-red-100 text-red-800";
             break;
+          case STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key:
+            label = STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value;
+            colorClass = "bg-yellow-100 text-yellow-800";
+            break;
           default:
             label = value;
             colorClass = "bg-gray-100 text-gray-800";
@@ -603,6 +607,9 @@ const StudentManagementPage = () => {
               <option value={STUDENT_STATUS_FE.VI_PHAM.key}>
                 {STUDENT_STATUS_FE.VI_PHAM.value}
               </option>
+              <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>
+                {STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}
+              </option>
             </select>
 
             <Button
@@ -750,12 +757,12 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value={STUDENT_STATUS_FE.DANG_O.key}>
-                    {STUDENT_STATUS_FE.DANG_O.value}
-                  </option>
-                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>
-                    {STUDENT_STATUS_FE.NGUNG_O.value}
-                  </option>
+                  <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
+                  <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
+                  <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
+                  <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>{STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}</option>
                 </select>
               </div>
             </div>
@@ -895,12 +902,12 @@ const StudentManagementPage = () => {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value={STUDENT_STATUS_FE.DANG_O.key}>
-                    {STUDENT_STATUS_FE.DANG_O.value}
-                  </option>
-                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>
-                    {STUDENT_STATUS_FE.NGUNG_O.value}
-                  </option>
+                  <option value={STUDENT_STATUS_FE.DANG_O.key}>{STUDENT_STATUS_FE.DANG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.NGUNG_O.key}>{STUDENT_STATUS_FE.NGUNG_O.value}</option>
+                  <option value={STUDENT_STATUS_FE.VI_PHAM.key}>{STUDENT_STATUS_FE.VI_PHAM.value}</option>
+                  <option value={STUDENT_STATUS_FE.CHO_NHAN_PHONG.key}>{STUDENT_STATUS_FE.CHO_NHAN_PHONG.value}</option>
+                  <option value={STUDENT_STATUS_FE.DANG_KY.key}>{STUDENT_STATUS_FE.DANG_KY.value}</option>
+                  <option value={STUDENT_STATUS_FE.KHONG_NHAN_PHONG.key}>{STUDENT_STATUS_FE.KHONG_NHAN_PHONG.value}</option>
                 </select>
               </div>
             </div>
