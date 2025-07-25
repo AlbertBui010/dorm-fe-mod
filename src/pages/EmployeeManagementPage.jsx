@@ -4,13 +4,10 @@ import {
   Plus,
   Search,
   Edit2,
-  Lock,
-  Unlock,
-  Trash2,
-  Eye,
   Users,
   UserCheck,
   UserX,
+  RefreshCcw,
 } from "lucide-react";
 import { employeeService } from "../services/api";
 import Layout from "../components/Layout";
@@ -35,6 +32,12 @@ const EmployeeManagementPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [changePassword, setChangePassword] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    setUser(JSON.parse(user));
+  }, []);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -125,7 +128,11 @@ const EmployeeManagementPage = () => {
       if (formData.Email) payload.Email = formData.Email;
       if (formData.SoDienThoai) payload.SoDienThoai = formData.SoDienThoai;
       if (formData.VaiTro) payload.VaiTro = formData.VaiTro;
-      if (formData.TrangThai) payload.TrangThai = formData.TrangThai;
+      if (formData.TrangThai) {
+        if (selectedEmployee.MaNhanVien !== user.MaNhanVien) {
+          payload.TrangThai = formData.TrangThai;
+        }
+      }
 
       const response = await employeeService.update(
         selectedEmployee.MaNhanVien,
@@ -143,27 +150,6 @@ const EmployeeManagementPage = () => {
     }
   };
 
-  const handleToggleStatus = async (employee) => {
-    try {
-      const response = await employeeService.toggleStatus(employee.MaNhanVien);
-      console.log("response", response);
-      if (response.success) {
-        loadEmployees();
-        loadStats();
-        toast.success(
-          `${
-            employee.TrangThai === NHAN_VIEN_STATUS_FE.HOAT_DONG.key
-              ? "Khóa"
-              : "Mở khóa"
-          } nhân viên thành công`
-        );
-      }
-    } catch (error) {
-      console.error("Error toggling status:", error);
-      toast.error("Không thể thay đổi trạng thái nhân viên");
-    }
-  };
-
   const resetForm = () => {
     setFormData({
       TenDangNhap: "",
@@ -173,6 +159,13 @@ const EmployeeManagementPage = () => {
       VaiTro: "NhanVien",
       MatKhau: "",
     });
+  };
+
+  const resetFilter = () => {
+    setSearchTerm("");
+    setSelectedRole("");
+    setSelectedStatus("");
+    loadEmployees();
   };
 
   const openCreateModal = () => {
@@ -273,17 +266,6 @@ const EmployeeManagementPage = () => {
           >
             <Edit2 className="w-4 h-4" />
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => handleToggleStatus(row)}
-          >
-            {row?.TrangThai === NHAN_VIEN_STATUS_FE.HOAT_DONG.key ? (
-              <Lock className="w-4 h-4" />
-            ) : (
-              <Unlock className="w-4 h-4" />
-            )}
-          </Button>
         </div>
       ),
     },
@@ -362,7 +344,7 @@ const EmployeeManagementPage = () => {
 
         {/* Filters */}
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -396,9 +378,15 @@ const EmployeeManagementPage = () => {
               <option value={NHAN_VIEN_STATUS_FE.KHOA.key}>
                 {NHAN_VIEN_STATUS_FE.KHOA.value}
               </option>
+              <option value={NHAN_VIEN_STATUS_FE.DA_NGHI.key}>
+                {NHAN_VIEN_STATUS_FE.DA_NGHI.value}
+              </option>
             </select>
             <Button variant="outline" onClick={loadEmployees}>
               Lọc
+            </Button>
+            <Button variant="outline" onClick={resetFilter}>
+              <RefreshCcw className="w-4 h-4" />
             </Button>
           </div>
         </Card>
@@ -551,23 +539,32 @@ const EmployeeManagementPage = () => {
             {/* Chỉ hiển thị khi sửa */}
             {selectedEmployee && (
               <div>
+                {/* Không cho phép chỉnh sửa trạng thái của chính mình */}
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Trạng thái
                 </label>
-                <select
-                  value={formData.TrangThai}
-                  onChange={(e) =>
-                    setFormData({ ...formData, TrangThai: e.target.value })
-                  }
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  {Object.values(NHAN_VIEN_STATUS_FE).map((status) => (
-                    <option key={status.key} value={status.key}>
-                      {status.value}
-                    </option>
-                  ))}
-                </select>
+                {selectedEmployee.MaNhanVien === user.MaNhanVien ? (
+                  <div>
+                    <p className="text-red-500 text-sm">
+                      Không cho phép chỉnh sửa trạng thái của chính mình.
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    value={formData.TrangThai}
+                    onChange={(e) =>
+                      setFormData({ ...formData, TrangThai: e.target.value })
+                    }
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    {Object.values(NHAN_VIEN_STATUS_FE).map((status) => (
+                      <option key={status.key} value={status.key}>
+                        {status.value}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             )}
             <div className="flex gap-2 pt-4">

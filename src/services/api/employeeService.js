@@ -26,12 +26,6 @@ export const employeeService = {
     return response.data;
   },
 
-  // Toggle employee status (Lock/Unlock)
-  toggleStatus: async (id) => {
-    const response = await api.patch(`/nhan-vien/${id}/toggle-status`);
-    return response.data;
-  },
-
   // Check if employee can be deleted
   canDelete: async (id) => {
     const response = await api.get(`/nhan-vien/${id}/can-delete`);

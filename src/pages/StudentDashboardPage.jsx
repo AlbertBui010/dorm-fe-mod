@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import RegistrationStatusCard from "../components/RegistrationStatusCard";
-import RecentYeuCauChuyenPhongCard from "../components/RecentYeuCauChuyenPhongCard";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  StudentProfileCard,
-} from "../components/ui";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui";
 import Button from "../components/ui/Button";
 import {
   Mail,
@@ -38,7 +31,6 @@ const getStudentNavigation = (stats) => {
       icon: Move,
       show: true,
     },
-    // Thêm các mục khác nếu cần
   ];
 };
 
