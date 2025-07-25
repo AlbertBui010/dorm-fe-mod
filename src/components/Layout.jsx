@@ -17,6 +17,7 @@ import {
   Droplets,
   Move,
   History,
+  GlassWater,
 } from "lucide-react";
 import { authService } from "../services/api";
 import registrationApprovalService from "../services/registrationApprovalService";
@@ -150,6 +151,12 @@ const Layout = ({ children, navigation: navigationProp }) => {
       href: "/chi-so-dien-nuoc",
       icon: Droplets,
       show: user?.VaiTro !== "SinhVien",
+    },
+    {
+      name: "Chi tiết điện nước",
+      href: "/chi-tiet-dien-nuoc",
+      icon: GlassWater,
+      show: true,
     },
     {
       name: "Yêu cầu chuyển phòng",

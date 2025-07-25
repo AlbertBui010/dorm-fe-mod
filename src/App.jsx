@@ -18,7 +18,7 @@ import ElectricWaterIndexManagementPage from "./pages/ElectricWaterIndexManageme
 import YeuCauChuyenPhongManagementPage from "./pages/YeuCauChuyenPhongManagementPage";
 import StudentYeuCauChuyenPhongPage from "./pages/StudentYeuCauChuyenPhongPage";
 import LichSuOPhongManagementPage from "./pages/LichSuOPhongManagementPage";
-
+import ChiTietDienNuocPage from "./pages/ChiTietDienNuocPage";
 import RegisterPage from "./pages/RegisterPage";
 import CheckEmailPage from "./pages/CheckEmailPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
@@ -314,6 +314,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <LichSuOPhongManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* UC12: Chi tiết điện nước */}
+
+          <Route
+            path="/chi-tiet-dien-nuoc"
+            element={
+              <ProtectedRoute>
+                <ChiTietDienNuocPage />
               </ProtectedRoute>
             }
           />
