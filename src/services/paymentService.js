@@ -31,7 +31,9 @@ class PaymentService {
         search = "",
         status = "",
         type = "",
+        method = "",
         month = "",
+        room = "",
         startDate = "",
         endDate = "",
       } = params;
@@ -42,7 +44,9 @@ class PaymentService {
         ...(search && { search }),
         ...(status && { status }),
         ...(type && { type }),
+        ...(method && { method }),
         ...(month && { month }),
+        ...(room && { room }),
         ...(startDate && { startDate }),
         ...(endDate && { endDate }),
       });

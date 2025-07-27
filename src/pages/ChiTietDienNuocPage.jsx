@@ -109,7 +109,7 @@ const ChiTietDienNuocPage = () => {
                 label="Tháng Năm"
                 value={thangNam}
                 onChange={handleThangNam}
-                placeholder="YYYY-MM"
+                placeholder="MM/YYYY"
                 className="w-40"
               />
               <Button onClick={fetchData} className="ml-2">

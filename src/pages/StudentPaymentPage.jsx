@@ -25,11 +25,11 @@ import {
   Wallet,
   RefreshCw,
   Home,
-  Move,
+  ArrowRightLeft,
 } from "lucide-react";
 import { studentPaymentService } from "../services/api/studentPaymentService";
 import Layout from "../components/Layout";
-import { PAYMENT_STATUS } from "../constants/paymentFe";
+import { PAYMENT_STATUS, PAYMENT_TYPE } from "../constants/paymentFe";
 
 // Navigation sẽ được tạo động dựa vào stats (nếu có)
 const getStudentNavigation = (stats) => {
@@ -45,7 +45,7 @@ const getStudentNavigation = (stats) => {
     {
       name: "Yêu cầu chuyển phòng",
       href: "/student/yeu-cau-chuyen-phong",
-      icon: Move,
+      icon: ArrowRightLeft,
       show: true,
     },
     // Thêm các mục khác nếu cần
@@ -360,7 +360,8 @@ const StudentPaymentPage = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-4 mb-2">
                             <h3 className="font-medium text-gray-900">
-                              {payment.LoaiThanhToan}
+                              {PAYMENT_TYPE[payment.LoaiThanhToan]?.value ||
+                                payment.LoaiThanhToan}
                             </h3>
                             {getStatusBadge(payment.TrangThai)}
                           </div>
@@ -479,7 +480,8 @@ const StudentPaymentPage = () => {
                       Loại thanh toán
                     </label>
                     <p className="text-gray-900">
-                      {selectedPayment.LoaiThanhToan}
+                      {PAYMENT_TYPE[selectedPayment.LoaiThanhToan]?.value ||
+                        selectedPayment.LoaiThanhToan}
                     </p>
                   </div>
                   <div>

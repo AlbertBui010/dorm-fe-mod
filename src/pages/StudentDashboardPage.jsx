@@ -8,8 +8,8 @@ import {
   Phone,
   CreditCard,
   Home,
-  Move,
   AlertTriangle,
+  ArrowRightLeft,
 } from "lucide-react";
 import { authService } from "../services/api/authService";
 import { studentPaymentService } from "../services/api/studentPaymentService";
@@ -28,7 +28,7 @@ const getStudentNavigation = (stats) => {
     {
       name: "Yêu cầu chuyển phòng",
       href: "/student/yeu-cau-chuyen-phong",
-      icon: Move,
+      icon: ArrowRightLeft,
       show: true,
     },
   ];

@@ -11,7 +11,14 @@ import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import Modal from "../components/ui/Modal";
 import { Badge } from "../components/ui/Badge";
-import { Plus, Eye, Home, AlertCircle, Move, CreditCard } from "lucide-react";
+import {
+  Plus,
+  Eye,
+  Home,
+  AlertCircle,
+  ArrowRightLeft,
+  CreditCard,
+} from "lucide-react";
 import yeuCauChuyenPhongService from "../services/api/yeuCauChuyenPhongService";
 import { authService } from "../services/api";
 import { studentPaymentService } from "../services/api/studentPaymentService";
@@ -28,7 +35,7 @@ const getStudentNavigation = (stats) => [
   {
     name: "Yêu cầu chuyển phòng",
     href: "/student/yeu-cau-chuyen-phong",
-    icon: Move,
+    icon: ArrowRightLeft,
     show: true,
   },
   // Thêm các mục khác nếu cần

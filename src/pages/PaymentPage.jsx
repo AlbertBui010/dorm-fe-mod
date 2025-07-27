@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale } from "react-datepicker";
+import vi from "date-fns/locale/vi";
 import {
   Search,
   CreditCard,
@@ -7,6 +11,37 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+
+// Đăng ký locale tiếng Việt
+registerLocale("vi", vi);
+
+// CSS tùy chỉnh cho DatePicker
+const datePickerStyles = `
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
+  .react-datepicker__input-container input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .react-datepicker__input-container input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  .react-datepicker__month-year-text {
+    font-weight: 600;
+    color: #374151;
+  }
+  .react-datepicker__header__dropdown {
+    background-color: #f9fafb;
+  }
+`;
+
 import Layout from "../components/Layout";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -16,9 +51,28 @@ import Input from "../components/ui/Input";
 import Pagination from "../components/ui/Pagination";
 import { Badge } from "../components/ui";
 import paymentService from "../services/paymentService";
-import { PAYMENT_STATUS, PAYMENT_TYPE } from "../constants/paymentFe";
+import roomService from "../services/api/roomService";
+import {
+  PAYMENT_STATUS,
+  PAYMENT_TYPE,
+  PAYMENT_METHOD,
+} from "../constants/paymentFe";
 import { convertMethodPayment } from "../utils/convertMethodPayment";
 import { formatCurrency } from "../utils/formatCurrency";
+
+// Helper functions cho date formatting (MM/YYYY)
+const formatToMMYYYY = (date) => {
+  if (!date) return "";
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}/${year}`;
+};
+
+const parseFromMMYYYY = (mmYYYY) => {
+  if (!mmYYYY || !/^\d{2}\/\d{4}$/.test(mmYYYY)) return null;
+  const [month, year] = mmYYYY.split("/");
+  return new Date(parseInt(year), parseInt(month) - 1, 1);
+};
 
 const PaymentPage = () => {
   const [payments, setPayments] = useState([]);
@@ -27,7 +81,10 @@ const PaymentPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedRoom, setSelectedRoom] = useState("");
+  const [rooms, setRooms] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -39,7 +96,19 @@ const PaymentPage = () => {
   useEffect(() => {
     loadPayments();
     loadStats();
-  }, [currentPage, searchTerm, selectedStatus, selectedType, selectedMonth]);
+  }, [
+    currentPage,
+    searchTerm,
+    selectedStatus,
+    selectedType,
+    selectedMethod,
+    selectedMonth,
+    selectedRoom,
+  ]);
+
+  useEffect(() => {
+    loadRooms();
+  }, []);
 
   const loadPayments = async () => {
     try {
@@ -50,7 +119,9 @@ const PaymentPage = () => {
         ...(searchTerm && { search: searchTerm }),
         ...(selectedStatus && { status: selectedStatus }),
         ...(selectedType && { type: selectedType }),
+        ...(selectedMethod && { method: selectedMethod }),
         ...(selectedMonth && { month: selectedMonth }),
+        ...(selectedRoom && { room: selectedRoom }),
       };
 
       const response = await paymentService.getPayments(params);
@@ -74,11 +145,22 @@ const PaymentPage = () => {
     }
   };
 
+  const loadRooms = async () => {
+    try {
+      const response = await roomService.getAll();
+      setRooms(response.data || []);
+    } catch (error) {
+      console.error("Error loading rooms:", error);
+    }
+  };
+
   const handleFilterChange = (newFilters) => {
     setSearchTerm(newFilters.search || "");
     setSelectedStatus(newFilters.status || "");
     setSelectedType(newFilters.type || "");
+    setSelectedMethod(newFilters.method || "");
     setSelectedMonth(newFilters.month || "");
+    setSelectedRoom(newFilters.room || "");
     setCurrentPage(1);
   };
 
@@ -115,12 +197,18 @@ const PaymentPage = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, hinhThuc) => {
     const statusMap = {
       CHUA_THANH_TOAN: { text: "Chưa thanh toán", variant: "yellow" },
       DANG_CHO_THANH_TOAN: { text: "Đang chờ", variant: "blue" },
       DA_THANH_TOAN: { text: "Đã thanh toán", variant: "green" },
-      CHO_XAC_NHAN: { text: "Chờ xác nhận", variant: "yellow" },
+      CHO_XAC_NHAN: {
+        text:
+          hinhThuc === PAYMENT_METHOD.TIEN_MAT.key
+            ? "Chờ xác nhận (Tiền mặt)"
+            : "Chờ xác nhận",
+        variant: "yellow",
+      },
       QUA_HAN: { text: "Quá hạn", variant: "red" },
     };
     const config = statusMap[status] || { text: status, variant: "gray" };
@@ -180,8 +268,63 @@ const PaymentPage = () => {
       align: "center",
     },
     {
+      key: "Phong",
+      title: "Phòng",
+      render: (value, payment) => {
+        if (!payment.Phong) return "-";
+        return (
+          <div className="text-center">
+            <div className="font-medium">{payment.Phong.SoPhong}</div>
+            <div className="text-xs text-gray-500">
+              {payment.Phong.LoaiPhong}
+            </div>
+          </div>
+        );
+      },
+      width: "w-20",
+      align: "center",
+    },
+    {
+      key: "HinhThuc",
+      title: "Hình thức",
+      render: (value) => {
+        if (!value || value.trim() === "") {
+          return <Badge variant="gray">Chưa xác định</Badge>;
+        }
+
+        const methodConfig = {
+          [PAYMENT_METHOD.TIEN_MAT.key]: {
+            variant: "blue",
+            text: PAYMENT_METHOD.TIEN_MAT.value,
+          },
+          [PAYMENT_METHOD.CHUYEN_KHOAN.key]: {
+            variant: "green",
+            text: PAYMENT_METHOD.CHUYEN_KHOAN.value,
+          },
+        };
+
+        const config = methodConfig[value];
+        if (config) {
+          return <Badge variant={config.variant}>{config.text}</Badge>;
+        }
+
+        return value;
+      },
+      width: "w-24",
+      align: "center",
+    },
+    {
       key: "ThangNam",
       title: "Tháng/Năm",
+      render: (value) => {
+        if (!value) return "-";
+        // Nếu format là YYYY-MM thì convert sang MM/YYYY
+        if (value.includes("-")) {
+          const [year, month] = value.split("-");
+          return `${month}/${year}`;
+        }
+        return value; // Giữ nguyên nếu đã là MM/YYYY
+      },
       width: "w-20",
       align: "center",
     },
@@ -195,7 +338,7 @@ const PaymentPage = () => {
     {
       key: "TrangThai",
       title: "Trạng thái",
-      render: (value) => getStatusBadge(value),
+      render: (value, payment) => getStatusBadge(value, payment.HinhThuc),
       width: "w-20",
       align: "center",
     },
@@ -208,34 +351,41 @@ const PaymentPage = () => {
     {
       key: "actions",
       title: "Thao tác",
-      render: (_, payment) => (
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleViewDetails(payment)}
-          >
-            Chi tiết
-          </Button>
-          {payment.TrangThai === PAYMENT_STATUS.CHO_XAC_NHAN && (
+      render: (_, payment) => {
+        const shouldShowApproveButton =
+          payment.TrangThai?.trim() === PAYMENT_STATUS.CHO_XAC_NHAN.key &&
+          payment.HinhThuc?.trim() === PAYMENT_METHOD.TIEN_MAT.key;
+
+        return (
+          <div className="flex gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              onClick={() => {
-                setSelectedPayment(payment);
-                setShowApprovalModal(true);
-              }}
+              onClick={() => handleViewDetails(payment)}
             >
-              Duyệt
+              Chi tiết
             </Button>
-          )}
-        </div>
-      ),
+            {shouldShowApproveButton && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedPayment(payment);
+                  setShowApprovalModal(true);
+                }}
+              >
+                Duyệt
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <Layout>
+      <style>{datePickerStyles}</style>
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -274,7 +424,7 @@ const PaymentPage = () => {
 
         {/* Filters */}
         <Card className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Tìm kiếm
@@ -300,16 +450,16 @@ const PaymentPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Tất cả</option>
-                <option value={PAYMENT_STATUS.CHUA_THANH_TOAN}>
+                <option value={PAYMENT_STATUS.CHUA_THANH_TOAN.key}>
                   Chưa thanh toán
                 </option>
-                <option value={PAYMENT_STATUS.DANG_CHO_THANH_TOAN}>
+                <option value={PAYMENT_STATUS.DANG_CHO_THANH_TOAN.key}>
                   Đang chờ
                 </option>
-                <option value={PAYMENT_STATUS.DA_THANH_TOAN}>
+                <option value={PAYMENT_STATUS.DA_THANH_TOAN.key}>
                   Đã thanh toán
                 </option>
-                <option value={PAYMENT_STATUS.CHO_XAC_NHAN}>
+                <option value={PAYMENT_STATUS.CHO_XAC_NHAN.key}>
                   Chờ xác nhận
                 </option>
               </select>
@@ -336,13 +486,61 @@ const PaymentPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tháng
+                Hình thức
               </label>
-              <Input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
+              <select
+                value={selectedMethod}
+                onChange={(e) => setSelectedMethod(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Tất cả</option>
+                <option value={PAYMENT_METHOD.TIEN_MAT.key}>
+                  {PAYMENT_METHOD.TIEN_MAT.value}
+                </option>
+                <option value={PAYMENT_METHOD.CHUYEN_KHOAN.key}>
+                  {PAYMENT_METHOD.CHUYEN_KHOAN.value}
+                </option>
+                <option value="null">Chưa xác định</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tháng/Năm
+              </label>
+              <DatePicker
+                selected={parseFromMMYYYY(selectedMonth)}
+                onChange={(date) => {
+                  const formattedDate = formatToMMYYYY(date);
+                  setSelectedMonth(formattedDate);
+                }}
+                dateFormat="MM/yyyy"
+                showMonthYearPicker
+                showFullMonthYearPicker
+                locale="vi"
+                placeholderText="Chọn tháng/năm"
+                isClearable
+                clearButtonTitle="Xóa"
+                todayButton="Hôm nay"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phòng
+              </label>
+              <select
+                value={selectedRoom}
+                onChange={(e) => setSelectedRoom(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Tất cả phòng</option>
+                {rooms.map((room) => (
+                  <option key={room.MaPhong} value={room.MaPhong}>
+                    Phòng {room.SoPhong}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="flex items-end justify-end h-full">
@@ -400,7 +598,7 @@ const PaymentPage = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Mã thanh toán
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -408,7 +606,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Mã sinh viên
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -416,7 +614,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Họ tên sinh viên
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -424,7 +622,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Email sinh viên
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -432,7 +630,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Mã phòng
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -440,7 +638,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Số phòng
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -448,7 +646,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Loại phòng
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -456,7 +654,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Loại thanh toán
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -465,15 +663,18 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Hình thức
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
-                    {convertMethodPayment(selectedPayment.HinhThuc) || "-"}
+                    {!selectedPayment.HinhThuc ||
+                    selectedPayment.HinhThuc.trim() === ""
+                      ? "Chưa xác định"
+                      : convertMethodPayment(selectedPayment.HinhThuc)}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Số tiền
                   </label>
                   <p className="mt-1 text-sm text-gray-900 font-medium">
@@ -481,15 +682,18 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Trạng thái
                   </label>
                   <p className="mt-1">
-                    {getStatusBadge(selectedPayment.TrangThai)}
+                    {getStatusBadge(
+                      selectedPayment.TrangThai,
+                      selectedPayment.HinhThuc
+                    )}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Tháng/Năm
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -497,7 +701,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Ngày thanh toán
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -509,7 +713,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     OrderCode
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -517,7 +721,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Reference
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -525,7 +729,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Mô tả
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -533,7 +737,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Ngày tạo
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -545,7 +749,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Người tạo
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -553,7 +757,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Ngày cập nhật
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -565,7 +769,7 @@ const PaymentPage = () => {
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-semibold text-gray-700">
                     Người cập nhật
                   </label>
                   <p className="mt-1 text-sm text-gray-900">
@@ -584,10 +788,17 @@ const PaymentPage = () => {
         >
           {selectedPayment && (
             <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">
-                  Thông tin thanh toán
-                </h4>
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                <div className="flex items-center mb-2">
+                  <AlertCircle className="h-5 w-5 text-blue-500 mr-2" />
+                  <h4 className="font-medium text-blue-900">
+                    Thanh toán tiền mặt cần xác nhận
+                  </h4>
+                </div>
+                <p className="text-sm text-blue-700 mb-3">
+                  Sinh viên đã thanh toán tiền mặt và đang chờ xác nhận từ
+                  admin.
+                </p>
                 <div className="space-y-2 text-sm">
                   <div>Sinh viên: {selectedPayment.SinhVien?.HoTen}</div>
                   <div>

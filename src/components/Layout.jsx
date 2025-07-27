@@ -15,9 +15,10 @@ import {
   ClipboardCheck,
   CreditCard,
   Droplets,
-  Move,
   History,
-  GlassWater,
+  Zap,
+  Bed,
+  ArrowRightLeft,
 } from "lucide-react";
 import { authService } from "../services/api";
 import registrationApprovalService from "../services/registrationApprovalService";
@@ -125,7 +126,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
     {
       name: "Quản lý Giường",
       href: "/beds",
-      icon: Building2,
+      icon: Bed,
       show: user?.VaiTro !== "SinhVien",
     },
     {
@@ -155,19 +156,19 @@ const Layout = ({ children, navigation: navigationProp }) => {
     {
       name: "Chi tiết điện nước",
       href: "/chi-tiet-dien-nuoc",
-      icon: GlassWater,
+      icon: Zap,
       show: true,
     },
     {
       name: "Yêu cầu chuyển phòng",
       href: "/yeu-cau-chuyen-phong",
-      icon: Move,
+      icon: ArrowRightLeft,
       show: user?.VaiTro !== "SinhVien",
     },
     {
       name: "Yêu cầu chuyển phòng",
       href: "/student/yeu-cau-chuyen-phong",
-      icon: Move,
+      icon: ArrowRightLeft,
       show: user?.VaiTro === "SinhVien",
     },
     {
