@@ -19,6 +19,7 @@ import {
   XCircle,
 } from "lucide-react";
 import yeuCauChuyenPhongService from "../services/api/yeuCauChuyenPhongService";
+import { YEU_CAU_CHUYEN_PHONG_STATUS } from "../constants/yeuCauChuyenPhongFe";
 
 const YeuCauChuyenPhongManagementPage = () => {
   const [yeuCauList, setYeuCauList] = useState([]);
@@ -34,6 +35,8 @@ const YeuCauChuyenPhongManagementPage = () => {
   const [approveReason, setApproveReason] = useState("");
   const [rejectReason, setRejectReason] = useState("");
   const [selectedBed, setSelectedBed] = useState("");
+  // Thêm state cho availableRooms
+  const [availableRooms, setAvailableRooms] = useState([]);
   useEffect(() => {
     loadData();
   }, [currentPage, statusFilter]);
@@ -177,16 +180,22 @@ const YeuCauChuyenPhongManagementPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      CHO_DUYET: { variant: "warning", text: "Chờ duyệt" },
-      DA_DUYET: { variant: "success", text: "Đã duyệt" },
-      TU_CHOI: { variant: "danger", text: "Từ chối" },
-      "Chờ duyệt": { variant: "warning", text: "Chờ duyệt" },
-      "Đã duyệt": { variant: "success", text: "Đã duyệt" },
-      "Từ chối": { variant: "danger", text: "Từ chối" },
+      [YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.key]: {
+        variant: "yellow",
+        text: YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.value,
+      },
+      [YEU_CAU_CHUYEN_PHONG_STATUS.DA_DUYET.key]: {
+        variant: "green",
+        text: YEU_CAU_CHUYEN_PHONG_STATUS.DA_DUYET.value,
+      },
+      [YEU_CAU_CHUYEN_PHONG_STATUS.TU_CHOI.key]: {
+        variant: "red",
+        text: YEU_CAU_CHUYEN_PHONG_STATUS.TU_CHOI.value,
+      },
     };
 
     const config = statusConfig[status] || {
-      variant: "secondary",
+      variant: "gray",
       text: status,
     };
     return <Badge variant={config.variant}>{config.text}</Badge>;
@@ -251,7 +260,7 @@ const YeuCauChuyenPhongManagementPage = () => {
             <Eye className="h-4 w-4" />
           </Button>
 
-          {record.TrangThai === "CHO_DUYET" && (
+          {record.TrangThai === YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.key && (
             <>
               <Button
                 size="sm"
@@ -269,7 +278,7 @@ const YeuCauChuyenPhongManagementPage = () => {
 
                     // Tự động set phòng mặc định là phòng sinh viên yêu cầu
                     if (record.PhongMoi?.MaPhong) {
-                      setSelectedRoom(record.PhongMoi.MaPhong);
+                      // setSelectedRoom(record.PhongMoi.MaPhong); // This line was removed
                     }
                   } catch (error) {
                     console.error("Lỗi khi tải danh sách phòng:", error);
@@ -393,9 +402,15 @@ const YeuCauChuyenPhongManagementPage = () => {
               className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Tất cả trạng thái</option>
-              <option value="CHO_DUYET">Chờ duyệt</option>
-              <option value="DA_DUYET">Đã duyệt</option>
-              <option value="TU_CHOI">Từ chối</option>
+              <option value={YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.key}>
+                {YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.value}
+              </option>
+              <option value={YEU_CAU_CHUYEN_PHONG_STATUS.DA_DUYET.key}>
+                {YEU_CAU_CHUYEN_PHONG_STATUS.DA_DUYET.value}
+              </option>
+              <option value={YEU_CAU_CHUYEN_PHONG_STATUS.TU_CHOI.key}>
+                {YEU_CAU_CHUYEN_PHONG_STATUS.TU_CHOI.value}
+              </option>
             </select>
             <Button variant="outline" onClick={handleSearch}>
               Tìm kiếm
@@ -509,7 +524,8 @@ const YeuCauChuyenPhongManagementPage = () => {
                 </div>
 
                 {/* Thông tin xử lý */}
-                {selectedYeuCau.TrangThai === "DA_DUYET" && (
+                {selectedYeuCau.TrangThai ===
+                  YEU_CAU_CHUYEN_PHONG_STATUS.DA_DUYET.key && (
                   <>
                     <div className="col-span-2">
                       <label className="text-sm font-medium text-gray-500">
@@ -542,7 +558,8 @@ const YeuCauChuyenPhongManagementPage = () => {
                   </>
                 )}
 
-                {selectedYeuCau.TrangThai === "TU_CHOI" && (
+                {selectedYeuCau.TrangThai ===
+                  YEU_CAU_CHUYEN_PHONG_STATUS.TU_CHOI.key && (
                   <>
                     <div className="col-span-2">
                       <label className="text-sm font-medium text-gray-500">
@@ -575,7 +592,8 @@ const YeuCauChuyenPhongManagementPage = () => {
                   </>
                 )}
 
-                {selectedYeuCau.TrangThai === "CHO_DUYET" && (
+                {selectedYeuCau.TrangThai ===
+                  YEU_CAU_CHUYEN_PHONG_STATUS.CHO_DUYET.key && (
                   <div className="col-span-2">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <p className="text-yellow-800 text-sm">
@@ -653,14 +671,14 @@ const YeuCauChuyenPhongManagementPage = () => {
                   variant="outline"
                   onClick={() => {
                     setShowModal(false);
-                    setSelectedRoom("");
+                    // setSelectedRoom(""); // This line was removed
                     setSelectedBed("");
                     setApproveReason("");
                   }}
                 >
                   Hủy
                 </Button>
-                <Button variant="success" onClick={handleApprove}>
+                <Button variant="primary" onClick={handleApprove}>
                   Duyệt
                 </Button>
               </div>
