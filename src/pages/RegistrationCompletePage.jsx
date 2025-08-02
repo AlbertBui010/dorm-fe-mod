@@ -15,7 +15,6 @@ const RegistrationCompletePage = () => {
     const stateData = location.state;
     
     if (!stateData) {
-      // If no state data, redirect to register
       navigate('/registration/register');
       return;
     }

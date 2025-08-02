@@ -7,6 +7,9 @@ import {
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import DashboardPage from "./pages/DashboardPage";
 import ApiTestPage from "./pages/ApiTestPage";
 import EmployeeManagementPage from "./pages/EmployeeManagementPage";
@@ -18,7 +21,7 @@ import ElectricWaterIndexManagementPage from "./pages/ElectricWaterIndexManageme
 import YeuCauChuyenPhongManagementPage from "./pages/YeuCauChuyenPhongManagementPage";
 import StudentYeuCauChuyenPhongPage from "./pages/StudentYeuCauChuyenPhongPage";
 import LichSuOPhongManagementPage from "./pages/LichSuOPhongManagementPage";
-
+import ChiTietDienNuocPage from "./pages/ChiTietDienNuocPage";
 import RegisterPage from "./pages/RegisterPage";
 import CheckEmailPage from "./pages/CheckEmailPage";
 import SetupPasswordPage from "./pages/SetupPasswordPage";
@@ -119,6 +122,25 @@ function App() {
             }
           />
 
+          {/* Password Reset Routes (Public) */}
+          <Route
+            path="/forgot-password"
+            element={
+              <PublicRoute>
+                <ForgotPasswordPage />
+              </PublicRoute>
+            }
+          />
+
+          <Route
+            path="/reset-password"
+            element={
+              <PublicRoute>
+                <ResetPasswordPage />
+              </PublicRoute>
+            }
+          />
+
           {/* UC7: Student Registration Routes (Public) */}
           <Route
             path="/registration/register"
@@ -181,6 +203,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Change Password Route */}
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
               </ProtectedRoute>
             }
           />
@@ -314,6 +346,17 @@ function App() {
             element={
               <ProtectedRoute>
                 <LichSuOPhongManagementPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* UC12: Chi tiết điện nước */}
+
+          <Route
+            path="/chi-tiet-dien-nuoc"
+            element={
+              <ProtectedRoute>
+                <ChiTietDienNuocPage />
               </ProtectedRoute>
             }
           />

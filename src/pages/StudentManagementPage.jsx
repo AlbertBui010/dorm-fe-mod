@@ -4,9 +4,6 @@ import {
   Plus,
   Search,
   Edit2,
-  Lock,
-  Unlock,
-  Trash2,
   Eye,
   Users,
   UserCheck,
@@ -17,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { studentService } from "../services/api";
+import { roomService } from "../services/api/roomService";
 import Layout from "../components/Layout";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -34,13 +32,13 @@ const StudentManagementPage = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [stats, setStats] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [relatedRecords, setRelatedRecords] = useState(null);
+  const [rooms, setRooms] = useState([]);
+  const [selectedRoom, setSelectedRoom] = useState("");
 
   // Form data
   const [formData, setFormData] = useState({
@@ -56,9 +54,22 @@ const StudentManagementPage = () => {
   });
 
   useEffect(() => {
+    // Lấy danh sách phòng
+    const fetchRooms = async () => {
+      try {
+        const res = await roomService.getAll({ limit: 100 });
+        if (res.success) setRooms(res.data || []);
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchRooms();
+  }, []);
+
+  useEffect(() => {
     loadStudents();
     loadStats();
-  }, [currentPage, searchTerm, selectedGender, selectedStatus]);
+  }, [currentPage, searchTerm, selectedGender, selectedStatus, selectedRoom]);
 
   const loadStudents = async () => {
     try {
@@ -69,6 +80,7 @@ const StudentManagementPage = () => {
         ...(searchTerm && { search: searchTerm }),
         ...(selectedGender && { gioiTinh: selectedGender }),
         ...(selectedStatus && { trangThai: selectedStatus }),
+        ...(selectedRoom && { maPhong: selectedRoom }),
       };
 
       const response = await studentService.getAll(params);
@@ -131,6 +143,11 @@ const StudentManagementPage = () => {
 
   const handleStatusFilter = (e) => {
     setSelectedStatus(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleRoomFilter = (e) => {
+    setSelectedRoom(e.target.value);
     setCurrentPage(1);
   };
 
@@ -204,41 +221,6 @@ const StudentManagementPage = () => {
     }
   };
 
-  const handleDelete = async () => {
-    try {
-      const response = await studentService.delete(selectedStudent.MaSinhVien);
-      if (response.success) {
-        toast.success("Xóa sinh viên thành công");
-        setShowDeleteModal(false);
-        setSelectedStudent(null);
-        setRelatedRecords(null);
-        loadStudents();
-        loadStats();
-      }
-    } catch (error) {
-      console.error("Error deleting student:", error);
-      toast.error(
-        error.response?.data?.message || "Có lỗi xảy ra khi xóa sinh viên"
-      );
-    }
-  };
-
-  const checkRelatedRecords = async (student) => {
-    try {
-      const response = await studentService.checkRelatedRecords(
-        student.MaSinhVien
-      );
-      if (response.success) {
-        setRelatedRecords(response.data);
-        setSelectedStudent(student);
-        setShowDeleteModal(true);
-      }
-    } catch (error) {
-      console.error("Error checking related records:", error);
-      toast.error("Có lỗi xảy ra khi kiểm tra dữ liệu liên quan");
-    }
-  };
-
   const handleCheckIn = async (student) => {
     try {
       const response = await studentService.checkIn(student.MaSinhVien);
@@ -307,10 +289,8 @@ const StudentManagementPage = () => {
   const closeModals = () => {
     setShowCreateModal(false);
     setShowEditModal(false);
-    setShowDeleteModal(false);
     setShowViewModal(false);
     setSelectedStudent(null);
-    setRelatedRecords(null);
     resetForm();
   };
 
@@ -344,6 +324,12 @@ const StudentManagementPage = () => {
           {value}
         </span>
       ),
+    },
+    {
+      key: "SoPhong",
+      header: "Phòng",
+      render: (value, row) =>
+        row.Giuong && row.Giuong.Phong ? row.Giuong.Phong.SoPhong : "-",
     },
     {
       key: "Email",
@@ -431,30 +417,6 @@ const StudentManagementPage = () => {
             className="text-yellow-600 hover:text-yellow-800"
           >
             <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleToggleStatus(row)}
-            className={
-              row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key
-                ? "text-orange-600 hover:text-orange-800"
-                : "text-green-600 hover:text-green-800"
-            }
-          >
-            {row.TrangThai === STUDENT_STATUS_FE.DANG_KY.key ? (
-              <Lock className="h-4 w-4" />
-            ) : (
-              <Unlock className="h-4 w-4" />
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => checkRelatedRecords(row)}
-            className="text-red-600 hover:text-red-800"
-          >
-            <Trash2 className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -564,7 +526,7 @@ const StudentManagementPage = () => {
 
         {/* Filters */}
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -574,6 +536,18 @@ const StudentManagementPage = () => {
                 className="pl-10"
               />
             </div>
+            <select
+              value={selectedRoom}
+              onChange={handleRoomFilter}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Tất cả phòng</option>
+              {rooms.map((room) => (
+                <option key={room.MaPhong} value={room.MaPhong}>
+                  {room.SoPhong}
+                </option>
+              ))}
+            </select>
 
             <select
               value={selectedGender}
@@ -618,6 +592,7 @@ const StudentManagementPage = () => {
                 setSearchTerm("");
                 setSelectedGender("");
                 setSelectedStatus("");
+                setSelectedRoom("");
                 setCurrentPage(1);
               }}
             >
@@ -1057,97 +1032,6 @@ const StudentManagementPage = () => {
                   }}
                 >
                   Chỉnh sửa
-                </Button>
-              </div>
-            </div>
-          )}
-        </Modal>
-
-        {/* Delete Modal */}
-        <Modal
-          isOpen={showDeleteModal}
-          onClose={closeModals}
-          title="Xóa sinh viên"
-        >
-          {selectedStudent && (
-            <div className="space-y-4">
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-red-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-800">
-                      Cảnh báo xóa sinh viên
-                    </h3>
-                    <div className="mt-2 text-sm text-red-700">
-                      <p>
-                        Bạn có chắc chắn muốn xóa sinh viên{" "}
-                        <strong>{selectedStudent.HoTen}</strong> (Mã SV:{" "}
-                        {selectedStudent.MaSinhVien})?
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {relatedRecords && relatedRecords.hasRelatedRecords && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                  <div className="flex">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-yellow-400"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-yellow-800">
-                        Không thể xóa sinh viên
-                      </h3>
-                      <div className="mt-2 text-sm text-yellow-700">
-                        <p>
-                          Sinh viên này còn có dữ liệu liên quan trong các bảng:{" "}
-                          <strong>
-                            {relatedRecords.relatedTables.join(", ")}
-                          </strong>
-                        </p>
-                        <p className="mt-1">
-                          Vui lòng xóa hoặc chuyển đổi dữ liệu liên quan trước
-                          khi xóa sinh viên.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={closeModals}>
-                  Hủy
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={relatedRecords && relatedRecords.hasRelatedRecords}
-                >
-                  Xóa sinh viên
                 </Button>
               </div>
             </div>

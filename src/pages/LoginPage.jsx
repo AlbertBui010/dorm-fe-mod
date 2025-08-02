@@ -87,6 +87,16 @@ const LoginPage = () => {
               </Button>
             </form>
 
+            {/* Forgot Password Link */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
+
             {/* Registration Link */}
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">

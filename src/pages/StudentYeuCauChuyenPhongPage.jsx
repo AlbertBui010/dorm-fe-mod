@@ -15,11 +15,8 @@ import {
   Plus,
   Eye,
   Home,
-  User,
-  Calendar,
-  FileText,
   AlertCircle,
-  Move,
+  ArrowRightLeft,
   CreditCard,
 } from "lucide-react";
 import yeuCauChuyenPhongService from "../services/api/yeuCauChuyenPhongService";
@@ -38,7 +35,7 @@ const getStudentNavigation = (stats) => [
   {
     name: "Yêu cầu chuyển phòng",
     href: "/student/yeu-cau-chuyen-phong",
-    icon: Move,
+    icon: ArrowRightLeft,
     show: true,
   },
   // Thêm các mục khác nếu cần
@@ -89,8 +86,7 @@ const StudentYeuCauChuyenPhongPage = () => {
       // Load available rooms after getting profile
       const roomsResponse =
         await yeuCauChuyenPhongService.getAvailableRoomsAndBeds();
-      const filteredRooms = (roomsResponse.data || []).filter((room) => {
-        // Chỉ lấy phòng có giường trống
+      let filteredRooms = (roomsResponse.data || []).filter((room) => {
         if (!room.Giuongs || room.Giuongs.length === 0) {
           return false;
         }
@@ -98,8 +94,14 @@ const StudentYeuCauChuyenPhongPage = () => {
         // Lọc theo giới tính - chỉ lấy phòng Nam/Nữ phù hợp với giới tính sinh viên
         return room.LoaiPhong === profileResponse.data.GioiTinh;
       });
-      setAvailableRooms(filteredRooms);
 
+      // Loại phòng hiện tại ra khỏi filteredRooms
+      const currentRoom = profileResponse.data.Giuong.Phong;
+      filteredRooms = filteredRooms.filter(
+        (room) => room.MaPhong !== currentRoom.MaPhong
+      );
+
+      setAvailableRooms(filteredRooms);
       setMyRequests(requestsResponse.data || []);
       setProfile(profileResponse.data);
       setGioiTinh(profileResponse.data.GioiTinh);
@@ -146,16 +148,13 @@ const StudentYeuCauChuyenPhongPage = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      CHO_DUYET: { variant: "warning", text: "Chờ duyệt" },
-      DA_DUYET: { variant: "success", text: "Đã duyệt" },
-      TU_CHOI: { variant: "danger", text: "Từ chối" },
-      "Chờ duyệt": { variant: "warning", text: "Chờ duyệt" },
-      "Đã duyệt": { variant: "success", text: "Đã duyệt" },
-      "Từ chối": { variant: "danger", text: "Từ chối" },
+      CHO_DUYET: { variant: "yellow", text: "Chờ duyệt" },
+      DA_DUYET: { variant: "green", text: "Đã duyệt" },
+      TU_CHOI: { variant: "red", text: "Từ chối" },
     };
 
     const config = statusConfig[status] || {
-      variant: "secondary",
+      variant: "gray",
       text: status,
     };
     return <Badge variant={config.variant}>{config.text}</Badge>;
@@ -202,13 +201,22 @@ const StudentYeuCauChuyenPhongPage = () => {
                   Quản lý yêu cầu chuyển phòng của bạn
                 </p>
               </div>
-              <Button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Tạo yêu cầu mới
-              </Button>
+
+              <div className="flex items-center ">
+                {availableRooms.length === 0 && (
+                  <span className="text-gray-500 mr-2">
+                    (Hiện tại không có phòng, giường trống)
+                  </span>
+                )}
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="flex items-center"
+                  disabled={availableRooms.length === 0}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Tạo yêu cầu mới
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -299,13 +307,6 @@ const StudentYeuCauChuyenPhongPage = () => {
                     <p className="text-gray-500 mb-4">
                       Bạn chưa tạo yêu cầu chuyển phòng nào
                     </p>
-                    <Button
-                      onClick={() => setShowCreateModal(true)}
-                      className="flex items-center mx-auto"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Tạo yêu cầu đầu tiên
-                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-4">

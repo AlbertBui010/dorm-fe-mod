@@ -28,6 +28,7 @@ const BedManagementPage = () => {
   const [availableStudents, setAvailableStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalBeds, setTotalBeds] = useState(0);
 
   // Pagination and filtering
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,9 +105,9 @@ const BedManagementPage = () => {
 
       const response = await bedService.getAllBeds(params);
       setBeds(response.data || []);
-
       if (response.pagination) {
         setTotalPages(response.pagination.totalPages);
+        setTotalBeds(response.pagination.total); // Lưu tổng số giường thực tế
       }
     } catch (err) {
       console.error("Error fetching beds:", err);
@@ -372,7 +373,7 @@ const BedManagementPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tổng giường</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {selectedRoom ? allBeds.length : beds.length}
+                  {selectedRoom ? allBeds.length : totalBeds}
                 </p>
                 {selectedRoom && getSelectedRoomInfo() && (
                   <p className="text-xs text-gray-500">
@@ -411,29 +412,29 @@ const BedManagementPage = () => {
               <UserCheck className="w-8 h-8 text-red-500" />
             </div>
           </Card>
-          {selectedRoom && getSelectedRoomInfo() && (
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Tình trạng phòng
-                  </p>
-                  <p
-                    className={`text-2xl font-bold ${
-                      isRoomFull() ? "text-red-600" : "text-blue-600"
-                    }`}
-                  >
-                    {isRoomFull() ? "Đầy" : "Còn chỗ"}
-                  </p>
-                </div>
-                <Building
-                  className={`w-8 h-8 ${
-                    isRoomFull() ? "text-red-500" : "text-blue-500"
-                  }`}
-                />
+
+          {/* Tỷ lệ sử dụng */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Tỷ lệ sử dụng
+                </p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {beds.length > 0
+                    ? Math.round(
+                        (beds.filter((bed) => bed.DaCoNguoi).length /
+                          beds.length) *
+                          100
+                      )
+                    : 0}
+                  %
+                </p>
+                <p className="text-xs text-gray-500">Tổng thể ký túc xá</p>
               </div>
-            </Card>
-          )}
+              <Building className="w-8 h-8 text-purple-500" />
+            </div>
+          </Card>
         </div>
 
         {error && (
