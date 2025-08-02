@@ -131,6 +131,37 @@ export const authService = {
       return new Error(error.message || "Có lỗi xảy ra");
     }
   },
+
+  // Password reset methods
+  sendPasswordResetEmail: async (email) => {
+    try {
+      const response = await api.post("/auth/forgot-password", { email });
+      return response.data;
+    } catch (error) {
+      throw authService.handleError(error);
+    }
+  },
+
+  verifyResetToken: async (token) => {
+    try {
+      const response = await api.get(`/auth/verify-reset-token/${token}`);
+      return response.data;
+    } catch (error) {
+      throw authService.handleError(error);
+    }
+  },
+
+  resetPassword: async (token, newPassword) => {
+    try {
+      const response = await api.post("/auth/reset-password", {
+        token,
+        newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      throw authService.handleError(error);
+    }
+  },
 };
 
 export default authService;

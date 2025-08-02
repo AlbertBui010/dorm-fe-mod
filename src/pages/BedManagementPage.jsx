@@ -28,6 +28,7 @@ const BedManagementPage = () => {
   const [availableStudents, setAvailableStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalBeds, setTotalBeds] = useState(0);
 
   // Pagination and filtering
   const [currentPage, setCurrentPage] = useState(1);
@@ -104,9 +105,9 @@ const BedManagementPage = () => {
 
       const response = await bedService.getAllBeds(params);
       setBeds(response.data || []);
-
       if (response.pagination) {
         setTotalPages(response.pagination.totalPages);
+        setTotalBeds(response.pagination.total); // Lưu tổng số giường thực tế
       }
     } catch (err) {
       console.error("Error fetching beds:", err);
@@ -372,7 +373,7 @@ const BedManagementPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Tổng giường</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {selectedRoom ? allBeds.length : beds.length}
+                  {selectedRoom ? allBeds.length : totalBeds}
                 </p>
                 {selectedRoom && getSelectedRoomInfo() && (
                   <p className="text-xs text-gray-500">

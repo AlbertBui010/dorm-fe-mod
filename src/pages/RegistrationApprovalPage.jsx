@@ -11,6 +11,7 @@ import Modal from "../components/ui/Modal";
 import Pagination from "../components/ui/Pagination";
 import { DANG_KY_STATUS } from "../constants/dangkyFe";
 import registrationApprovalService from "../services/registrationApprovalService";
+import lyDoTuChoiService from "../services/api/lydotuchoiService";
 import RoomFeeCalculationModal from "../components/ui/RoomFeeCalculationModal";
 
 const RegistrationApprovalPage = () => {
@@ -23,11 +24,13 @@ const RegistrationApprovalPage = () => {
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showFeeModal, setShowFeeModal] = useState(false);
   const [lastApprovalResult, setLastApprovalResult] = useState(null);
+  const [dsLyDoTuChoi, setDsLyDoTuChoi] = useState([]);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pageSize] = useState(10);
+  const [reloadLyDoTrigger, setReloadLyDoTrigger] = useState(0);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -45,6 +48,19 @@ const RegistrationApprovalPage = () => {
   const [rejectForm, setRejectForm] = useState({
     lyDoTuChoi: "",
   });
+
+  useEffect(() => {
+    const loadLyDoTuChoi = async () => {
+      try {
+        const res = await lyDoTuChoiService.getAll();
+        setDsLyDoTuChoi(res);
+      } catch (error) {
+        console.error("Lỗi khi tải lý do từ chối:", error);
+      }
+    };
+    loadLyDoTuChoi();
+  }, [reloadLyDoTrigger]);
+
 
   // Load data on component mount
   useEffect(() => {
@@ -207,15 +223,21 @@ const RegistrationApprovalPage = () => {
   // Table columns
   const columns = [
     {
+      key: "MaDangKy",
+      header: "Mã Đăng Ký",
+      render: (value, row) => (
+        <span className="font-mono text-sm text-blue-700">{row.MaDangKy}</span>
+      )
+    },
+    {
       key: "sinhVien",
       header: "Sinh viên",
       render: (value, row) => (
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10">
             <div
-              className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                row.GioiTinh === "Nam" ? "bg-blue-500" : "bg-pink-500"
-              }`}
+              className={`h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-medium ${row.GioiTinh === "Nam" ? "bg-blue-500" : "bg-pink-500"
+                }`}
             >
               {row.HoTen.charAt(0)}
             </div>
@@ -319,15 +341,14 @@ const RegistrationApprovalPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               {filters.trangThai
-                ? `Quản lý đăng ký - ${
-                    filters.trangThai === "CHO_DUYET"
-                      ? "Chờ duyệt"
-                      : filters.trangThai === "DA_DUYET"
-                      ? "Đã duyệt"
-                      : filters.trangThai === "TU_CHOI"
+                ? `Quản lý đăng ký - ${filters.trangThai === "CHO_DUYET"
+                  ? "Chờ duyệt"
+                  : filters.trangThai === "DA_DUYET"
+                    ? "Đã duyệt"
+                    : filters.trangThai === "TU_CHOI"
                       ? "Đã từ chối"
                       : "Tất cả"
-                  }`
+                }`
                 : "Quản lý duyệt đăng ký"}
             </h1>
             <p className="text-gray-600">
@@ -387,9 +408,8 @@ const RegistrationApprovalPage = () => {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-600">Nam / Nữ</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {`${stats.genderStats?.male || 0} / ${
-                    stats.genderStats?.female || 0
-                  }`}
+                  {`${stats.genderStats?.male || 0} / ${stats.genderStats?.female || 0
+                    }`}
                 </p>
               </div>
             </div>
@@ -479,6 +499,10 @@ const RegistrationApprovalPage = () => {
                 Thông tin sinh viên
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="">Mã phiếu đăng ký:</div>
+                <div className="">
+                  {selectedRegistration.MaDangKy}
+                </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Mã sinh viên:</p>
                   <p className="font-medium text-gray-900">
@@ -516,8 +540,8 @@ const RegistrationApprovalPage = () => {
                   <p className="font-medium text-gray-900">
                     {selectedRegistration.NgayKetThucHopDong
                       ? new Date(
-                          selectedRegistration.NgayKetThucHopDong
-                        ).toLocaleDateString("vi-VN")
+                        selectedRegistration.NgayKetThucHopDong
+                      ).toLocaleDateString("vi-VN")
                       : "Chưa xác định"}
                   </p>
                 </div>
@@ -625,7 +649,7 @@ const RegistrationApprovalPage = () => {
                   <h4 className="text-base font-medium text-red-900 mb-4">
                     Từ chối đăng ký
                   </h4>
-                  <div className="mb-6">
+                  {/* <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Lý do từ chối *
                     </label>
@@ -642,6 +666,48 @@ const RegistrationApprovalPage = () => {
                       rows="3"
                       required
                     />
+                  </div> */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Lý do từ chối *
+                    </label>
+                    <table className="w-full text-sm text-left border border-gray-300 rounded-md">
+                      <thead className="bg-gray-100 text-gray-700">
+                        <tr>
+                          <th className="p-2">Lý Do</th>
+                          <th className="p-2">chọn</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {dsLyDoTuChoi.length > 0 ? (
+                          dsLyDoTuChoi.map((item) => (
+                            <tr key={item.MaLyDo}>
+                              <td className="p-2">{item.NoiDung}</td>
+                              <td className="">
+                                <input
+                                  type="radio"
+                                  name="lyDoTuChoi"
+                                  value={item.NoiDung}
+                                  checked={rejectForm.lyDoTuChoi === item.NoiDung}
+                                  onChange={(e) =>
+                                    setRejectForm((prev) => ({
+                                      ...prev,
+                                      lyDoTuChoi: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="2" className="p-2 text-gray-500 italic">
+                              Không có lý do nào được cấu hình
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                   <Button
                     onClick={rejectRegistration}

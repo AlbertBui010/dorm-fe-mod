@@ -24,6 +24,11 @@ const RegisterPage = () => {
   const [calculatedEndDate, setCalculatedEndDate] = useState(null);
   const [isCalculatingDate, setIsCalculatingDate] = useState(false);
 
+  function fixTimezone(dateStr) {
+    const date = new Date(dateStr);
+    return new Date(date.getTime() + 7 * 60 * 60 * 1000); // +7 giờ
+  }
+
   // Tính toán ngày kết thúc hợp đồng khi thay đổi ngày nhận phòng
   const calculateEndDate = async (receiveDate) => {
     if (!receiveDate) {
@@ -48,6 +53,8 @@ const RegisterPage = () => {
       setIsCalculatingDate(false);
     }
   };
+
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -394,8 +401,13 @@ const RegisterPage = () => {
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                     <p className="text-sm text-green-800">
                       <strong>Ngày tính tiền phòng dự kiến:</strong>{' '}
-                      {new Date(calculatedEndDate.ngayTinhTienPhongDuKien).toLocaleDateString("vi-VN") ||
-                        new Date(calculatedEndDate.ngayKetThucHopDong).toLocaleDateString("vi-VN")}
+                      {
+                        calculatedEndDate.ngayTinhTienPhongDuKien
+                          ? fixTimezone(calculatedEndDate.ngayTinhTienPhongDuKien).toLocaleDateString("vi-VN")
+                          : calculatedEndDate.ngayKetThucHopDong
+                            ? fixTimezone(calculatedEndDate.ngayKetThucHopDong).toLocaleDateString("vi-VN")
+                            : ''
+                      }
                     </p>
                     <p className="text-xs text-green-600 mt-1">
                       Việc đăng ký sẽ tính tiền phòng đến ngày này

@@ -10,6 +10,7 @@ import {
   Home,
   AlertTriangle,
   ArrowRightLeft,
+  Lock,
 } from "lucide-react";
 import { authService } from "../services/api/authService";
 import { studentPaymentService } from "../services/api/studentPaymentService";
@@ -173,6 +174,18 @@ const StudentDashboardPage = () => {
                     {profile?.GioiTinh || "Chưa có"}
                   </p>
                 </div>
+              </div>
+              
+              {/* Change Password Button */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <Button
+                  onClick={() => navigate("/change-password")}
+                  variant="outline"
+                  className="flex items-center"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Đổi mật khẩu
+                </Button>
               </div>
             </CardContent>
           </Card>
