@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -57,7 +57,6 @@ import {
   PAYMENT_TYPE,
   PAYMENT_METHOD,
 } from "../constants/paymentFe";
-import { convertMethodPayment } from "../utils/convertMethodPayment";
 import { formatCurrency } from "../utils/formatCurrency";
 
 // Helper functions cho date formatting (MM/YYYY)
@@ -93,24 +92,7 @@ const PaymentPage = () => {
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  useEffect(() => {
-    loadPayments();
-    loadStats();
-  }, [
-    currentPage,
-    searchTerm,
-    selectedStatus,
-    selectedType,
-    selectedMethod,
-    selectedMonth,
-    selectedRoom,
-  ]);
-
-  useEffect(() => {
-    loadRooms();
-  }, []);
-
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -134,16 +116,24 @@ const PaymentPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    currentPage,
+    searchTerm,
+    selectedStatus,
+    selectedType,
+    selectedMethod,
+    selectedMonth,
+    selectedRoom,
+  ]);
 
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     try {
       const response = await paymentService.getAdminStats();
       setStats(response.data || {});
     } catch (error) {
       console.error("Error loading stats:", error);
     }
-  };
+  }, []);
 
   const loadRooms = async () => {
     try {
@@ -154,15 +144,14 @@ const PaymentPage = () => {
     }
   };
 
-  const handleFilterChange = (newFilters) => {
-    setSearchTerm(newFilters.search || "");
-    setSelectedStatus(newFilters.status || "");
-    setSelectedType(newFilters.type || "");
-    setSelectedMethod(newFilters.method || "");
-    setSelectedMonth(newFilters.month || "");
-    setSelectedRoom(newFilters.room || "");
-    setCurrentPage(1);
-  };
+  useEffect(() => {
+    loadPayments();
+    loadStats();
+  }, [loadPayments, loadStats]);
+
+  useEffect(() => {
+    loadRooms();
+  }, []);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -171,6 +160,16 @@ const PaymentPage = () => {
   const handleViewDetails = (payment) => {
     setSelectedPayment(payment);
     setShowDetailModal(true);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedStatus("");
+    setSelectedType("");
+    setSelectedMethod("");
+    setSelectedMonth("");
+    setSelectedRoom("");
+    setCurrentPage(1);
   };
 
   const handleApprovePayment = async (paymentId) => {
@@ -547,7 +546,7 @@ const PaymentPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleFilterChange({})}
+                onClick={clearFilters}
                 className="h-10"
               >
                 Xoá bộ lọc
@@ -670,7 +669,8 @@ const PaymentPage = () => {
                     {!selectedPayment.HinhThuc ||
                     selectedPayment.HinhThuc.trim() === ""
                       ? "Chưa xác định"
-                      : convertMethodPayment(selectedPayment.HinhThuc)}
+                      : PAYMENT_METHOD[selectedPayment.HinhThuc]?.value ||
+                        selectedPayment.HinhThuc}
                   </p>
                 </div>
                 <div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
@@ -63,7 +63,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
   const loadPaymentWaitingCount = async () => {
     try {
       const response = await paymentService.getPayments({
-        status: PAYMENT_STATUS.CHO_XAC_NHAN,
+        status: PAYMENT_STATUS.CHO_XAC_NHAN.key,
       });
       if (response.success) {
         setPaymentWaitingCount(response.data.totalItems || 0);
