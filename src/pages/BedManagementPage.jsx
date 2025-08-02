@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import {
   Plus,
@@ -699,7 +699,7 @@ const BedManagementPage = () => {
                   name="SoGiuong"
                   value={formData.SoGiuong}
                   onChange={handleInputChange}
-                  placeholder="1"
+                  placeholder="Gxx (ví dụ: G001, G002)"
                   required
                 />
                 <select

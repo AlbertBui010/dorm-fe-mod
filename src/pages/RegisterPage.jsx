@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -173,6 +173,13 @@ const RegisterPage = () => {
         message: 'Bạn đã có tài khoản. Vui lòng đăng nhập.'
       }
     });
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "Chưa có";
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1);
+    return date.toLocaleDateString("vi-VN");
   };
 
   return (
@@ -394,8 +401,8 @@ const RegisterPage = () => {
                   <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
                     <p className="text-sm text-green-800">
                       <strong>Ngày tính tiền phòng dự kiến:</strong>{' '}
-                      {new Date(calculatedEndDate.ngayTinhTienPhongDuKien).toLocaleDateString("vi-VN") ||
-                        new Date(calculatedEndDate.ngayKetThucHopDong).toLocaleDateString("vi-VN")}
+                      {formatDate(calculatedEndDate.ngayTinhTienPhongDuKien) ||
+                        formatDate(calculatedEndDate.ngayKetThucHopDong)}
                     </p>
                     <p className="text-xs text-green-600 mt-1">
                       Việc đăng ký sẽ tính tiền phòng đến ngày này

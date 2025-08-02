@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import { Card, CardContent } from "../components/ui/Card";
@@ -86,6 +86,16 @@ const LoginPage = () => {
                 Đăng nhập
               </Button>
             </form>
+
+            {/* Forgot Password Link */}
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
 
             {/* Registration Link */}
             <div className="mt-6 text-center">

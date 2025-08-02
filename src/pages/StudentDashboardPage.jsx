@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import RegistrationStatusCard from "../components/RegistrationStatusCard";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui";
@@ -10,10 +10,12 @@ import {
   Home,
   AlertTriangle,
   ArrowRightLeft,
+  Key,
 } from "lucide-react";
 import { authService } from "../services/api/authService";
 import { studentPaymentService } from "../services/api/studentPaymentService";
 import Layout from "../components/Layout";
+import ChangePasswordModal from "../components/ChangePasswordModal";
 
 const getStudentNavigation = (stats) => {
   return [
@@ -40,8 +42,9 @@ const StudentDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentStats, setPaymentStats] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setError("");
       const result = await authService.getProfile();
@@ -61,11 +64,11 @@ const StudentDashboardPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
   if (loading) {
     return (
@@ -117,7 +120,18 @@ const StudentDashboardPage = () => {
           {/* Student Info */}
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Thông tin sinh viên</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Thông tin sinh viên</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowPasswordModal(true)}
+                  className="flex items-center text-blue-600 hover:text-blue-700"
+                >
+                  <Key className="h-4 w-4 mr-1" />
+                  Đổi mật khẩu
+                </Button>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -183,6 +197,13 @@ const StudentDashboardPage = () => {
             showActions={false}
           />
         </div>
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal
+          isOpen={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          studentInfo={profile}
+        />
       </div>
     </Layout>
   );
