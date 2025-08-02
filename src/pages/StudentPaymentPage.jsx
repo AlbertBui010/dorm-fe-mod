@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -554,7 +554,7 @@ const StudentPaymentPage = () => {
               <div className="space-y-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h4 className="font-medium text-blue-900">
-                    {selectedPayment.LoaiThanhToan} - {selectedPayment.ThangNam}
+                    {PAYMENT_TYPE[selectedPayment.LoaiThanhToan]?.value || selectedPayment.LoaiThanhToan} - {selectedPayment.ThangNam}
                   </h4>
                   <p className="text-2xl font-bold text-blue-600 mt-1">
                     {formatCurrency(selectedPayment.SoTien)}

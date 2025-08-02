@@ -1,12 +1,20 @@
-import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import PaymentResult from '../components/PaymentResult';
 
-const PaymentSuccessPage = () => (
-  <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-    <img src="/logo/logo-stu.png" alt="STU Logo" style={{ width: 80, height: 80, marginBottom: 24 }} />
-    <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 12 }}>Thanh toán thành công!</h1>
-    <p style={{ marginBottom: 16 }}>Cảm ơn bạn đã thanh toán. Giao dịch của bạn đã được xác nhận.</p>
-    <a href="/student/payments" style={{ textDecoration: 'underline' }}>Quay lại trang thanh toán</a>
-  </div>
-);
+const PaymentSuccessPage = () => {
+  const [searchParams] = useSearchParams();
+  const orderCode = searchParams.get('orderCode');
+
+  return (
+    <PaymentResult
+      type="success"
+      title="Thanh toán thành công!"
+      message="Cảm ơn bạn đã thanh toán. Giao dịch của bạn đã được xác nhận và xử lý thành công."
+      orderCode={orderCode}
+      autoRedirect={true}
+      redirectDelay={5000}
+    />
+  );
+};
 
 export default PaymentSuccessPage;

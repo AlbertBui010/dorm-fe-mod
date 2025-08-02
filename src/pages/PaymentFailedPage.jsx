@@ -1,12 +1,24 @@
-import React from 'react';
+import { useSearchParams } from 'react-router-dom';
+import PaymentResult from '../components/PaymentResult';
 
-const PaymentFailedPage = () => (
-  <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-    <img src="/logo/logo-stu.png" alt="STU Logo" style={{ width: 80, height: 80, marginBottom: 24 }} />
-    <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 12 }}>Thanh toán thất bại</h1>
-    <p style={{ marginBottom: 16 }}>Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ.</p>
-    <a href="/student/payments" style={{ textDecoration: 'underline' }}>Quay lại trang thanh toán</a>
-  </div>
-);
+const PaymentFailedPage = () => {
+  const [searchParams] = useSearchParams();
+  const orderCode = searchParams.get('orderCode');
+  const error = searchParams.get('error');
+
+  return (
+    <PaymentResult
+      type="error"
+      title="Thanh toán thất bại"
+      message={
+        error 
+          ? `Giao dịch thất bại: ${error}. Vui lòng thử lại hoặc liên hệ hỗ trợ nếu vấn đề vẫn tiếp tục.`
+          : "Có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại hoặc liên hệ hỗ trợ."
+      }
+      orderCode={orderCode}
+      autoRedirect={false}
+    />
+  );
+};
 
 export default PaymentFailedPage;
