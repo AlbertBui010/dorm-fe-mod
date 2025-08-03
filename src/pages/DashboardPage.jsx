@@ -2,15 +2,17 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
-  User,
-  Settings,
   Users,
   Bed,
   CreditCard,
   Building,
   UserCheck,
-  AlertCircle,
+  MapPin,
   DollarSign,
+  AlertCircle,
+  TrendingUp,
+  Home,
+  Settings,
 } from "lucide-react";
 import Layout from "../components/Layout";
 import Card from "../components/ui/Card";
@@ -26,27 +28,27 @@ import paymentService from "../services/paymentService";
 
 // Constants
 const INITIAL_STATS = {
+  // Room stats
   totalRooms: 0,
+  emptyRooms: 0,
+  fullRooms: 0,
+  
+  // Bed stats
   totalBeds: 0,
   occupiedBeds: 0,
   availableBeds: 0,
+  occupancyRate: 0,
+  
+  // Student & Employee stats
   totalStudents: 0,
   totalEmployees: 0,
+  
+  // Payment stats
   totalPayments: 0,
   pendingPayments: 0,
   completedPayments: 0,
   overduePayments: 0,
-};
-
-// Utility functions
-const getOccupancyRate = (occupied, total) => {
-  return total > 0 ? Math.round((occupied / total) * 100) : 0;
-};
-
-const handleApiError = (error, defaultMessage) => {
-  console.error(defaultMessage, error);
-  const message = error?.message || defaultMessage;
-  toast.error(message);
+  totalRevenue: 0,
 };
 
 const DashboardPage = () => {
@@ -64,7 +66,8 @@ const DashboardPage = () => {
       const profileData = await authService.getProfile();
       setProfile(profileData.data);
     } catch (error) {
-      handleApiError(error, "Không thể tải thông tin profile");
+      console.error("Error loading profile:", error);
+      toast.error("Không thể tải thông tin profile");
     } finally {
       setLoading(false);
     }
@@ -72,55 +75,83 @@ const DashboardPage = () => {
 
   const loadStats = useCallback(async () => {
     try {
-      // Use fallback data for failed API calls
-      const [roomStats, bedStats, studentsResponse, paymentStats] = await Promise.all([
-        roomService.getStatistics().catch((error) => {
-          console.warn("Room stats failed:", error);
-          return { data: { totalRooms: 0 } };
-        }),
-        bedService.getBedStatistics().catch((error) => {
-          console.warn("Bed stats failed:", error);
-          return { data: { TongSoGiuong: 0, SoGiuongDangO: 0, SoGiuongTrong: 0 } };
-        }),
-        studentService.getAll({ limit: 1 }).catch((error) => {
-          console.warn("Student stats failed:", error);
-          return { pagination: { total: 0 } };
-        }),
-        paymentService.getAdminStats().catch((error) => {
-          console.warn("Payment stats failed:", error);
-          return { 
-            data: { 
-              totals: { totalPayments: 0 }, 
-              totalPending: 0, 
-              totalPaid: 0, 
-              totalOverdue: 0 
-            } 
-          };
-        }),
+      // Load all statistics in parallel
+      const [
+        roomsResponse,
+        bedStats,
+        studentsResponse,
+        employeesResponse,
+        paymentStats
+      ] = await Promise.all([
+        roomService.getAll({ limit: 1000 }).catch(() => ({ data: [], pagination: { total: 0 } })),
+        bedService.getBedStatistics().catch(() => ({ data: { TongSoGiuong: 0, SoGiuongDangO: 0, SoGiuongTrong: 0 } })),
+        studentService.getAll({ limit: 1 }).catch(() => ({ pagination: { total: 0 } })),
+        user?.VaiTro === "QuanTriVien" 
+          ? employeeService.getAll({ limit: 1 }).catch(() => ({ pagination: { total: 0 } }))
+          : Promise.resolve({ pagination: { total: 0 } }),
+        paymentService.getAdminStats().catch(() => ({ 
+          data: { 
+            totals: { totalPayments: 0 }, 
+            totalPending: 0, 
+            totalPaid: 0, 
+            totalOverdue: 0 
+          } 
+        })),
       ]);
 
-      // Load employee count (only for admin)
-      let employeeCount = 0;
-      if (user?.VaiTro === "QuanTriVien") {
-        try {
-          const employeesResponse = await employeeService.getAll({ limit: 1 });
-          employeeCount = employeesResponse.pagination?.total || 0;
-        } catch (error) {
-          console.warn("Employee stats failed:", error);
-        }
-      }
+      // Process room statistics
+      const rooms = roomsResponse.data || [];
+      const totalRooms = roomsResponse.pagination?.total || 0;
+      
+      const emptyRooms = rooms.filter((r) => {
+        const occupiedBeds = r.Giuongs
+          ? r.Giuongs.filter((g) => g.DaCoNguoi).length
+          : r?.SoLuongHienTai || 0;
+        return occupiedBeds === 0 && (r?.TrangThai || "Hoạt động") === "Hoạt động";
+      }).length;
+
+      const fullRooms = rooms.filter((r) => {
+        const occupiedBeds = r.Giuongs
+          ? r.Giuongs.filter((g) => g.DaCoNguoi).length
+          : r?.SoLuongHienTai || 0;
+        const maxBeds = r?.SucChua || (r.Giuongs ? r.Giuongs.length : 0);
+        return occupiedBeds === maxBeds && maxBeds > 0;
+      }).length;
+
+      // Process bed statistics
+      const totalBeds = bedStats.data?.TongSoGiuong || 0;
+      const occupiedBeds = bedStats.data?.SoGiuongDangO || 0;
+      const availableBeds = bedStats.data?.SoGiuongTrong || 0;
+      const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+
+      // Process payment statistics
+      const totalPayments = paymentStats.data?.totals?.totalPayments || 0;
+      const pendingPayments = paymentStats.data?.totalPending || 0;
+      const completedPayments = paymentStats.data?.totalPaid || 0;
+      const overduePayments = paymentStats.data?.totalOverdue || 0;
 
       setStats({
-        totalRooms: roomStats.data?.totalRooms || 0,
-        totalBeds: bedStats.data?.TongSoGiuong || 0,
-        occupiedBeds: bedStats.data?.SoGiuongDangO || 0,
-        availableBeds: bedStats.data?.SoGiuongTrong || 0,
+        // Room stats
+        totalRooms,
+        emptyRooms,
+        fullRooms,
+        
+        // Bed stats
+        totalBeds,
+        occupiedBeds,
+        availableBeds,
+        occupancyRate,
+        
+        // Student & Employee stats
         totalStudents: studentsResponse.pagination?.total || 0,
-        totalEmployees: employeeCount,
-        totalPayments: paymentStats.data?.totals?.totalPayments || 0,
-        pendingPayments: paymentStats.data?.totalPending || 0,
-        completedPayments: paymentStats.data?.totalPaid || 0,
-        overduePayments: paymentStats.data?.totalOverdue || 0,
+        totalEmployees: employeesResponse.pagination?.total || 0,
+        
+        // Payment stats
+        totalPayments,
+        pendingPayments,
+        completedPayments,
+        overduePayments,
+        totalRevenue: paymentStats.data?.totals?.totalRevenue || 0,
       });
     } catch (error) {
       console.error("Error loading dashboard stats:", error);
@@ -157,10 +188,13 @@ const DashboardPage = () => {
     <Layout>
       <div className="p-6 space-y-6">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <Card className="p-6">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Home className="w-6 h-6 mr-2 text-blue-600" />
+                Dashboard
+              </h1>
               <p className="text-gray-600 mt-1">
                 Tổng quan hệ thống quản lý ký túc xá STU
               </p>
@@ -168,7 +202,7 @@ const DashboardPage = () => {
             <div className="flex items-center space-x-3">
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-900">
-                  {String(profile?.HoTen || "Chưa có tên")}
+                  {profile?.HoTen || "Chưa có tên"}
                 </p>
                 <p className="text-xs text-gray-500">
                   {user?.VaiTro === "QuanTriVien" ? "Quản trị viên" : "Nhân viên"}
@@ -184,181 +218,200 @@ const DashboardPage = () => {
               </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Statistics Cards - Simplified Layout */}
+        {/* Main Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Phòng */}
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Building className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
+          {/* Total Rooms */}
+          <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateTo("/rooms")}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Tổng phòng</p>
-                <p className="text-2xl font-bold text-gray-900">{String(stats.totalRooms)}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalRooms}</p>
+                <p className="text-xs text-gray-500">
+                  Trống: {stats.emptyRooms} | Đầy: {stats.fullRooms}
+                </p>
               </div>
+              <Building className="w-8 h-8 text-blue-500" />
             </div>
           </Card>
 
-          {/* Giường */}
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Bed className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
+          {/* Total Beds */}
+          <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateTo("/beds")}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Tổng giường</p>
-                <p className="text-2xl font-bold text-gray-900">{String(stats.totalBeds)}</p>
-                <p className="text-xs text-gray-500">Trống: {String(stats.availableBeds)}</p>
+                <p className="text-2xl font-bold text-purple-600">{stats.totalBeds}</p>
+                <p className="text-xs text-gray-500">
+                  Trống: {stats.availableBeds} | Đã có người: {stats.occupiedBeds}
+                </p>
               </div>
+              <Bed className="w-8 h-8 text-purple-500" />
             </div>
           </Card>
 
-          {/* Sinh viên */}
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
+          {/* Total Students */}
+          <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateTo("/students")}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Sinh viên</p>
-                <p className="text-2xl font-bold text-gray-900">{String(stats.totalStudents)}</p>
+                <p className="text-2xl font-bold text-green-600">{stats.totalStudents}</p>
                 <p className="text-xs text-gray-500">
-                  Tỷ lệ: {String(getOccupancyRate(stats.occupiedBeds, stats.totalBeds))}%
+                  Tỷ lệ sử dụng: {stats.occupancyRate}%
                 </p>
               </div>
+              <Users className="w-8 h-8 text-green-500" />
             </div>
           </Card>
 
-          {/* Thanh toán */}
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <CreditCard className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div className="ml-4">
+          {/* Total Payments */}
+          <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigateTo("/payments")}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Thanh toán</p>
-                <p className="text-2xl font-bold text-gray-900">{String(stats.totalPayments)}</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.totalPayments}</p>
                 <p className="text-xs text-gray-500">
-                  Hoàn thành: {String(stats.completedPayments)}
+                  Hoàn thành: {stats.completedPayments}
                 </p>
               </div>
+              <CreditCard className="w-8 h-8 text-emerald-500" />
             </div>
           </Card>
         </div>
 
-        {/* Detailed Statistics - Admin Only */}
-        {user?.VaiTro === "QuanTriVien" && (
-          <>
-            {/* Cơ sở vật chất chi tiết */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Building className="w-5 h-5 mr-2 text-blue-600" />
-                Chi tiết cơ sở vật chất
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="p-3 bg-orange-100 rounded-full w-fit mx-auto mb-3">
-                    <UserCheck className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Giường đã sử dụng</p>
-                  <p className="text-2xl font-bold text-gray-900">{String(stats.occupiedBeds)}</p>
+        {/* Detailed Statistics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Room & Bed Details */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Building className="w-5 h-5 mr-2 text-blue-600" />
+              Chi tiết cơ sở vật chất
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <MapPin className="w-5 h-5 text-green-500 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Phòng trống</span>
                 </div>
-                
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="p-3 bg-teal-100 rounded-full w-fit mx-auto mb-3">
-                    <Bed className="w-6 h-6 text-teal-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Giường trống</p>
-                  <p className="text-2xl font-bold text-gray-900">{String(stats.availableBeds)}</p>
+                <span className="text-lg font-bold text-green-600">{stats.emptyRooms}</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <UserCheck className="w-5 h-5 text-red-500 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Phòng đầy</span>
                 </div>
+                <span className="text-lg font-bold text-red-600">{stats.fullRooms}</span>
+              </div>
 
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <div className="p-3 bg-cyan-100 rounded-full w-fit mx-auto mb-3">
-                    <User className="w-6 h-6 text-cyan-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Nhân viên</p>
-                  <p className="text-2xl font-bold text-gray-900">{String(stats.totalEmployees)}</p>
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <TrendingUp className="w-5 h-5 text-purple-500 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Tỷ lệ sử dụng giường</span>
                 </div>
+                <span className="text-lg font-bold text-purple-600">{stats.occupancyRate}%</span>
+              </div>
+
+              {user?.VaiTro === "QuanTriVien" && (
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center">
+                    <Users className="w-5 h-5 text-cyan-500 mr-3" />
+                    <span className="text-sm font-medium text-gray-700">Nhân viên</span>
+                  </div>
+                  <span className="text-lg font-bold text-cyan-600">{stats.totalEmployees}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Payment Details */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <CreditCard className="w-5 h-5 mr-2 text-emerald-600" />
+              Chi tiết thanh toán
+            </h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Chờ xử lý</span>
+                </div>
+                <span className="text-lg font-bold text-yellow-600">{stats.pendingPayments}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center">
+                  <UserCheck className="w-5 h-5 text-green-600 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Đã thanh toán</span>
+                </div>
+                <span className="text-lg font-bold text-green-600">{stats.completedPayments}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center">
+                  <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Quá hạn</span>
+                </div>
+                <span className="text-lg font-bold text-red-600">{stats.overduePayments}</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center">
+                  <DollarSign className="w-5 h-5 text-blue-600 mr-3" />
+                  <span className="text-sm font-medium text-gray-700">Tổng doanh thu</span>
+                </div>
+                <span className="text-lg font-bold text-blue-600">
+                  {new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                  }).format(stats.totalRevenue)}
+                </span>
               </div>
             </div>
-
-            {/* Tình trạng thanh toán chi tiết */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <CreditCard className="w-5 h-5 mr-2 text-emerald-600" />
-                Chi tiết thanh toán
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="p-3 bg-yellow-100 rounded-full w-fit mx-auto mb-3">
-                    <AlertCircle className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Chờ xử lý</p>
-                  <p className="text-2xl font-bold text-yellow-600">{String(stats.pendingPayments)}</p>
-                </div>
-
-                <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="p-3 bg-green-100 rounded-full w-fit mx-auto mb-3">
-                    <UserCheck className="w-6 h-6 text-green-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Đã thanh toán</p>
-                  <p className="text-2xl font-bold text-green-600">{String(stats.completedPayments)}</p>
-                </div>
-
-                <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                  <div className="p-3 bg-red-100 rounded-full w-fit mx-auto mb-3">
-                    <DollarSign className="w-6 h-6 text-red-600" />
-                  </div>
-                  <p className="text-sm text-gray-600">Quá hạn</p>
-                  <p className="text-2xl font-bold text-red-600">{String(stats.overduePayments)}</p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+          </Card>
+        </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <Card className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Thao tác nhanh</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Button
               variant="outline"
               onClick={() => navigateTo("/rooms")}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+              className="flex flex-col items-center p-4 h-auto"
             >
-              <Building className="w-6 h-6" />
+              <Building className="w-6 h-6 mb-2" />
               <span className="text-sm">Quản lý phòng</span>
             </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => navigateTo("/beds")}
+              className="flex flex-col items-center p-4 h-auto"
+            >
+              <Bed className="w-6 h-6 mb-2" />
+              <span className="text-sm">Quản lý giường</span>
+            </Button>
+            
             <Button
               variant="outline"
               onClick={() => navigateTo("/students")}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+              className="flex flex-col items-center p-4 h-auto"
             >
-              <Users className="w-6 h-6" />
-              <span className="text-sm">Sinh viên</span>
+              <Users className="w-6 h-6 mb-2" />
+              <span className="text-sm">Quản lý sinh viên</span>
             </Button>
+            
             <Button
               variant="outline"
               onClick={() => navigateTo("/payments")}
-              className="h-auto p-4 flex flex-col items-center space-y-2"
+              className="flex flex-col items-center p-4 h-auto"
             >
-              <CreditCard className="w-6 h-6" />
-              <span className="text-sm">Thanh toán</span>
+              <CreditCard className="w-6 h-6 mb-2" />
+              <span className="text-sm">Quản lý thanh toán</span>
             </Button>
-            {user?.VaiTro === "QuanTriVien" && (
-              <Button
-                variant="outline"
-                onClick={() => navigateTo("/employees")}
-                className="h-auto p-4 flex flex-col items-center space-y-2"
-              >
-                <User className="w-6 h-6" />
-                <span className="text-sm">Nhân viên</span>
-              </Button>
-            )}
           </div>
-        </div>
+        </Card>
       </div>
     </Layout>
   );
