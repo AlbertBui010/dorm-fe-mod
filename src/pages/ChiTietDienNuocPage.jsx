@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import chiTietDienNuocService from "../services/api/chiTietDienNuocService";
 import Table from "../components/ui/Table";
 import Pagination from "../components/ui/Pagination";

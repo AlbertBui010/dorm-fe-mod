@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
-import { Plus, Edit2, Search } from "lucide-react";
+import { Plus, Edit2, Search, Download } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
@@ -14,6 +14,7 @@ import Pagination from "../components/ui/Pagination";
 import { chiSoDienNuocService } from "../services/api/chiSoDienNuocService";
 import { Card } from "../components/ui/Card";
 import { roomService } from "../services/api/roomService";
+import { exportToExcel, EXPORT_CONFIGS } from "../utils/exportExcel";
 
 // Đăng ký locale tiếng Việt
 registerLocale("vi", vi);
@@ -184,6 +185,51 @@ const ElectricWaterIndexManagementPage = () => {
     }
   };
 
+  // Export Excel function
+  const handleExportExcel = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all data for export (không có pagination)
+      const response = await chiSoDienNuocService.getChiSoDienNuoc({
+        page: 1,
+        limit: 10000, // Lấy tất cả data
+        search: search, // Giữ filter search hiện tại
+      });
+
+      const allData = response?.data?.data || [];
+      
+      if (allData.length === 0) {
+        toast.error("Không có dữ liệu để export");
+        return;
+      }
+
+      // Prepare data with room mapping
+      const dataWithRoomMapping = allData.map(item => ({
+        ...item,
+        SoPhong: rooms.find((r) => r.MaPhong === item.MaPhong)?.SoPhong || item.MaPhong || "",
+      }));
+
+      // Use the reusable export function
+      exportToExcel({
+        data: dataWithRoomMapping,
+        ...EXPORT_CONFIGS.electricWater,
+        onSuccess: ({ count, filename }) => {
+          console.log(`Successfully exported ${count} records to ${filename}`);
+        },
+        onError: (error) => {
+          console.error("Export failed:", error);
+        }
+      });
+
+    } catch (error) {
+      console.error("Error preparing export:", error);
+      toast.error("Lỗi khi chuẩn bị dữ liệu export");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const columns = [
     { header: "Mã chỉ số", key: "MaChiSo" },
     {
@@ -224,10 +270,20 @@ const ElectricWaterIndexManagementPage = () => {
               Quản lý chỉ số điện, nước cho từng phòng trong ký túc xá
             </p>
           </div>
-          <Button onClick={handleOpenAdd}>
-            <Plus className="w-4 h-4 mr-2" />
-            Thêm chỉ số mới
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              onClick={handleExportExcel}
+              disabled={loading}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export Excel
+            </Button>
+            <Button onClick={handleOpenAdd}>
+              <Plus className="w-4 h-4 mr-2" />
+              Thêm chỉ số mới
+            </Button>
+          </div>
         </div>
 
         {/* Search/filter */}

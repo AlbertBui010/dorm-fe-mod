@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import {
   Plus,
   Search,
   Edit2,
-  Trash2,
   Eye,
-  Filter,
   Building,
   Users,
   MapPin,
@@ -343,6 +341,37 @@ const RoomManagementPage = () => {
       },
     },
     {
+      key: "TrangThai",
+      title: "Trạng thái phòng",
+      render: (value) => {
+        try {
+          const status = String(value || "Hoạt động");
+          let colorClass = "bg-green-100 text-green-800";
+          
+          if (status === "Bảo trì") {
+            colorClass = "bg-yellow-100 text-yellow-800";
+          } else if (status === "Đã đóng" || status === "KHOA") {
+            colorClass = "bg-red-100 text-red-800";
+          } else if (status === "Hoạt động" || status === "HOAT_DONG") {
+            colorClass = "bg-green-100 text-green-800";
+          }
+          
+          return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+              {status === "HOAT_DONG" ? "Hoạt động" : status === "KHOA" ? "Đã khóa" : status}
+            </span>
+          );
+        } catch (error) {
+          console.error("Error rendering room status:", error);
+          return (
+            <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+              {String(value || "N/A")}
+            </span>
+          );
+        }
+      },
+    },
+    {
       key: "actions",
       title: "Thao tác",
       render: (_, room) => (
@@ -380,7 +409,7 @@ const RoomManagementPage = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -457,21 +486,7 @@ const RoomManagementPage = () => {
               <Users className="w-8 h-8 text-red-500" />
             </div>
           </Card>
-          <Card className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Bảo trì</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {
-                    rooms.filter(
-                      (r) => (r?.TrangThai || "Hoạt động") === "Bảo trì"
-                    ).length
-                  }
-                </p>
-              </div>
-              <Building className="w-8 h-8 text-yellow-500" />
-            </div>
-          </Card>
+          
         </div>
 
         {/* Filters and Actions */}

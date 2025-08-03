@@ -359,9 +359,9 @@ const EmployeeManagementPage = () => {
             <div className="flex items-center">
               <Users className="w-8 h-8 text-purple-600" />
               <div className="ml-3">
-                <p className="text-sm font-medium text-gray-600">Admin</p>
+                <p className="text-sm font-medium text-gray-600">Quản trị viên</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.roles?.[0]?.count || 0}
+                  {stats?.roles?.[1]?.count || 0}
                 </p>
               </div>
             </div>
@@ -374,7 +374,7 @@ const EmployeeManagementPage = () => {
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
-                placeholder="Tìm kiếm nhân viên..."
+                placeholder="Tìm kiếm tên nhân viên, email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
