@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import {
   Plus,
@@ -19,6 +19,56 @@ import Input from "../components/ui/Input";
 import Pagination from "../components/ui/Pagination";
 import { NHAN_VIEN_STATUS_FE } from "../constants/nhanVienFE";
 
+// Constants
+const PAGINATION_LIMIT = 10;
+const INITIAL_FORM_DATA = {
+  TenDangNhap: "",
+  HoTen: "",
+  Email: "",
+  SoDienThoai: "",
+  VaiTro: "NhanVien",
+  MatKhau: "",
+};
+
+const ROLE_BADGE_STYLES = {
+  QuanTriVien: "bg-red-100 text-red-800",
+  QuanLy: "bg-blue-100 text-blue-800",
+  NhanVien: "bg-green-100 text-green-800",
+};
+
+const STATUS_BADGE_STYLES = {
+  [NHAN_VIEN_STATUS_FE.HOAT_DONG.key]: "bg-green-100 text-green-800",
+  [NHAN_VIEN_STATUS_FE.KHOA.key]: "bg-red-100 text-red-800",
+  default: "bg-gray-100 text-gray-800",
+};
+
+// Utility functions
+const getRoleBadgeClass = (role) => ROLE_BADGE_STYLES[role] || ROLE_BADGE_STYLES.NhanVien;
+
+const getStatusBadgeClass = (status) => STATUS_BADGE_STYLES[status] || STATUS_BADGE_STYLES.default;
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case NHAN_VIEN_STATUS_FE.HOAT_DONG.key:
+      return "Hoạt động";
+    case NHAN_VIEN_STATUS_FE.KHOA.key:
+      return "Đã khóa";
+    case NHAN_VIEN_STATUS_FE.DA_NGHI.key:
+      return "Đã nghỉ";
+    default:
+      return "Không xác định";
+  }
+};
+
+const handleApiError = (error, defaultMessage) => {
+  console.error(error);
+  toast.error(error.response?.data?.message || defaultMessage);
+};
+
+const createFormFieldUpdater = (setFormData) => (field, value) => {
+  setFormData(prev => ({ ...prev, [field]: value }));
+};
+
 const EmployeeManagementPage = () => {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,33 +84,23 @@ const EmployeeManagementPage = () => {
   const [changePassword, setChangePassword] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Form data
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+
+  // Form field updater
+  const updateFormField = createFormFieldUpdater(setFormData);
+
   useEffect(() => {
     const user = localStorage.getItem("user");
     setUser(JSON.parse(user));
   }, []);
 
-  // Form data
-  const [formData, setFormData] = useState({
-    TenDangNhap: "",
-    HoTen: "",
-    Email: "",
-    SoDienThoai: "",
-    VaiTro: "NhanVien",
-    MatKhau: "",
-  });
-
-  useEffect(() => {
-    loadEmployees();
-    loadStats();
-    loadRoles();
-  }, [currentPage, searchTerm, selectedRole, selectedStatus]);
-
-  const loadEmployees = async () => {
+  const loadEmployees = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
         page: currentPage,
-        limit: 10,
+        limit: PAGINATION_LIMIT,
         ...(searchTerm && { search: searchTerm }),
         ...(selectedRole && { vaiTro: selectedRole }),
         ...(selectedStatus && { trangThai: selectedStatus }),
@@ -72,12 +112,17 @@ const EmployeeManagementPage = () => {
         setTotalPages(response.data.pagination?.totalPages || 1);
       }
     } catch (error) {
-      console.error("Error loading employees:", error);
-      toast.error("Không thể tải danh sách nhân viên");
+      handleApiError(error, "Không thể tải danh sách nhân viên");
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, selectedRole, selectedStatus]);
+
+  useEffect(() => {
+    loadEmployees();
+    loadStats();
+    loadRoles();
+  }, [loadEmployees]);
 
   const loadStats = async () => {
     try {
@@ -86,7 +131,7 @@ const EmployeeManagementPage = () => {
         setStats(response.data);
       }
     } catch (error) {
-      console.error("Error loading stats:", error);
+      handleApiError(error, "Không thể tải thống kê");
     }
   };
 
@@ -97,7 +142,7 @@ const EmployeeManagementPage = () => {
         setRoles(response.data);
       }
     } catch (error) {
-      console.error("Error loading roles:", error);
+      handleApiError(error, "Không thể tải danh sách vai trò");
     }
   };
 
@@ -106,15 +151,13 @@ const EmployeeManagementPage = () => {
     try {
       const response = await employeeService.create(formData);
       if (response.success) {
-        setShowCreateModal(false);
-        resetForm();
+        handleCloseModal();
         loadEmployees();
         loadStats();
         toast.success("Thêm nhân viên thành công");
       }
     } catch (error) {
-      console.error("Error creating employee:", error);
-      toast.error("Không thể thêm nhân viên");
+      handleApiError(error, "Không thể thêm nhân viên");
     }
   };
 
@@ -139,26 +182,31 @@ const EmployeeManagementPage = () => {
         payload
       );
       if (response.success) {
-        setShowCreateModal(false);
-        resetForm();
+        handleCloseModal();
         loadEmployees();
         toast.success("Cập nhật nhân viên thành công");
       }
     } catch (error) {
-      console.error("Error updating employee:", error);
-      toast.error("Không thể cập nhật nhân viên");
+      handleApiError(error, "Không thể cập nhật nhân viên");
     }
   };
 
   const resetForm = () => {
-    setFormData({
-      TenDangNhap: "",
-      HoTen: "",
-      Email: "",
-      SoDienThoai: "",
-      VaiTro: "NhanVien",
-      MatKhau: "",
-    });
+    setFormData(INITIAL_FORM_DATA);
+  };
+
+  const togglePasswordChange = () => {
+    setChangePassword(prev => !prev);
+    if (!changePassword) {
+      updateFormField('MatKhau', '');
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowCreateModal(false);
+    setSelectedEmployee(null);
+    setChangePassword(false);
+    resetForm();
   };
 
   const resetFilter = () => {
@@ -196,19 +244,19 @@ const EmployeeManagementPage = () => {
     {
       key: "MaNhanVien",
       header: "Mã NV",
-      render: (value, row) => (
+      render: (value) => (
         <span className="font-mono text-sm">{value}</span>
       ),
     },
     {
       key: "HoTen",
       header: "Họ và tên",
-      render: (value, row) => <span className="font-medium">{value}</span>,
+      render: (value) => <span className="font-medium">{value}</span>,
     },
     {
       key: "Email",
       header: "Email",
-      render: (value, row) => <span className="text-blue-600">{value}</span>,
+      render: (value) => <span className="text-blue-600">{value}</span>,
     },
     {
       key: "SoDienThoai",
@@ -217,16 +265,8 @@ const EmployeeManagementPage = () => {
     {
       key: "VaiTro",
       header: "Vai trò",
-      render: (value, row) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value === "QuanTriVien"
-              ? "bg-red-100 text-red-800"
-              : value === "QuanLy"
-              ? "bg-blue-100 text-blue-800"
-              : "bg-green-100 text-green-800"
-          }`}
-        >
+      render: (value) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(value)}`}>
           {getRoleLabel(value)}
         </span>
       ),
@@ -234,23 +274,9 @@ const EmployeeManagementPage = () => {
     {
       key: "TrangThai",
       header: "Trạng thái",
-      render: (value, row) => (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            value === NHAN_VIEN_STATUS_FE.HOAT_DONG.key
-              ? "bg-green-100 text-green-800"
-              : value === NHAN_VIEN_STATUS_FE.KHOA.key
-              ? "bg-red-100 text-red-800"
-              : "bg-gray-100 text-gray-800"
-          }`}
-        >
-          {value === NHAN_VIEN_STATUS_FE.HOAT_DONG.key
-            ? "Hoạt động"
-            : value === NHAN_VIEN_STATUS_FE.KHOA.key
-            ? "Đã khóa"
-            : value === NHAN_VIEN_STATUS_FE.DA_NGHI.key
-            ? "Đã nghỉ"
-            : "Không xác định"}
+      render: (value) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(value)}`}>
+          {getStatusLabel(value)}
         </span>
       ),
     },
@@ -344,7 +370,7 @@ const EmployeeManagementPage = () => {
 
         {/* Filters */}
         <Card className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -382,9 +408,6 @@ const EmployeeManagementPage = () => {
                 {NHAN_VIEN_STATUS_FE.DA_NGHI.value}
               </option>
             </select>
-            <Button variant="outline" onClick={loadEmployees}>
-              Lọc
-            </Button>
             <Button variant="outline" onClick={resetFilter}>
               <RefreshCcw className="w-4 h-4" />
             </Button>
@@ -414,7 +437,7 @@ const EmployeeManagementPage = () => {
         {/* Create/Edit Modal (dùng chung) */}
         <Modal
           isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
+          onClose={handleCloseModal}
           title={
             selectedEmployee ? "Chỉnh sửa nhân viên" : "Thêm nhân viên mới"
           }
@@ -430,9 +453,7 @@ const EmployeeManagementPage = () => {
               </label>
               <Input
                 value={formData.TenDangNhap}
-                onChange={(e) =>
-                  setFormData({ ...formData, TenDangNhap: e.target.value })
-                }
+                onChange={(e) => updateFormField('TenDangNhap', e.target.value)}
                 placeholder="Nhập tên đăng nhập"
                 required
                 disabled={!!selectedEmployee}
@@ -449,9 +470,7 @@ const EmployeeManagementPage = () => {
                 <Input
                   type="password"
                   value={formData.MatKhau}
-                  onChange={(e) =>
-                    setFormData({ ...formData, MatKhau: e.target.value })
-                  }
+                  onChange={(e) => updateFormField('MatKhau', e.target.value)}
                   placeholder="Nhập mật khẩu"
                   required
                   autoComplete={
@@ -466,10 +485,7 @@ const EmployeeManagementPage = () => {
                   variant="outline"
                   onClick={(e) => {
                     e.preventDefault();
-                    setChangePassword((prev) => !prev);
-                    if (!changePassword) {
-                      setFormData((prev) => ({ ...prev, MatKhau: "" }));
-                    }
+                    togglePasswordChange();
                   }}
                   className="mt-2"
                 >
@@ -483,9 +499,7 @@ const EmployeeManagementPage = () => {
               </label>
               <Input
                 value={formData.HoTen}
-                onChange={(e) =>
-                  setFormData({ ...formData, HoTen: e.target.value })
-                }
+                onChange={(e) => updateFormField('HoTen', e.target.value)}
                 placeholder="Nhập họ và tên"
                 required
               />
@@ -497,9 +511,7 @@ const EmployeeManagementPage = () => {
               <Input
                 type="email"
                 value={formData.Email}
-                onChange={(e) =>
-                  setFormData({ ...formData, Email: e.target.value })
-                }
+                onChange={(e) => updateFormField('Email', e.target.value)}
                 placeholder="Nhập email"
                 required
               />
@@ -510,9 +522,7 @@ const EmployeeManagementPage = () => {
               </label>
               <Input
                 value={formData.SoDienThoai}
-                onChange={(e) =>
-                  setFormData({ ...formData, SoDienThoai: e.target.value })
-                }
+                onChange={(e) => updateFormField('SoDienThoai', e.target.value)}
                 placeholder="Nhập số điện thoại"
                 required
               />
@@ -523,9 +533,7 @@ const EmployeeManagementPage = () => {
               </label>
               <select
                 value={formData.VaiTro}
-                onChange={(e) =>
-                  setFormData({ ...formData, VaiTro: e.target.value })
-                }
+                onChange={(e) => updateFormField('VaiTro', e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
@@ -552,9 +560,7 @@ const EmployeeManagementPage = () => {
                 ) : (
                   <select
                     value={formData.TrangThai}
-                    onChange={(e) =>
-                      setFormData({ ...formData, TrangThai: e.target.value })
-                    }
+                    onChange={(e) => updateFormField('TrangThai', e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
@@ -574,7 +580,7 @@ const EmployeeManagementPage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowCreateModal(false)}
+                onClick={handleCloseModal}
                 className="flex-1"
               >
                 Hủy
