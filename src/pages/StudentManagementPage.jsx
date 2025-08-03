@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import {
   Plus,
@@ -198,26 +198,6 @@ const StudentManagementPage = () => {
       toast.error(
         error.response?.data?.message || "Có lỗi xảy ra khi cập nhật sinh viên"
       );
-    }
-  };
-
-  const handleToggleStatus = async (student) => {
-    try {
-      const response = await studentService.toggleStatus(student.MaSinhVien);
-      if (response.success) {
-        toast.success(
-          `${
-            student.TrangThai === STUDENT_STATUS_FE.DANG_KY.key
-              ? "Vô hiệu hóa"
-              : "Kích hoạt"
-          } sinh viên thành công`
-        );
-        loadStudents();
-        loadStats();
-      }
-    } catch (error) {
-      console.error("Error toggling student status:", error);
-      toast.error("Có lỗi xảy ra khi thay đổi trạng thái sinh viên");
     }
   };
 

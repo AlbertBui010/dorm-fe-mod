@@ -260,4 +260,72 @@ export const EXPORT_CONFIGS = {
       "Ngày cập nhật": COLUMN_WIDTHS.DATE,
     },
   },
+
+  // Electric water detail/bill
+  electricWaterDetail: {
+    filename: "hoa_don_dien_nuoc",
+    sheetName: "Hóa đơn điện nước",
+    columns: [
+      { excelKey: "ID", excelLabel: "ID" },
+      { excelKey: "MaSinhVien", excelLabel: "Mã sinh viên" },
+      { excelKey: "MaChiSo", excelLabel: "Mã chỉ số" },
+      {
+        excelKey: "SoPhong",
+        excelLabel: "Số phòng",
+        transform: (value, item) => {
+          // Hiển thị thông tin phòng từ các nguồn khác nhau
+          if (item.ChiSoDienNuoc?.Phong?.SoPhong) {
+            return item.ChiSoDienNuoc.Phong.SoPhong;
+          }
+          if (item.SinhVien?.Giuong?.Phong?.SoPhong) {
+            return item.SinhVien.Giuong.Phong.SoPhong;
+          }
+          return item.SoPhong || "-";
+        },
+      },
+      { excelKey: "SoNgayO", excelLabel: "Số ngày ở" },
+      {
+        excelKey: "TienDien",
+        excelLabel: "Tiền điện",
+        transform: TRANSFORMS.currency,
+      },
+      {
+        excelKey: "TienNuoc",
+        excelLabel: "Tiền nước",
+        transform: TRANSFORMS.currency,
+      },
+      {
+        excelKey: "TongTien",
+        excelLabel: "Tổng tiền",
+        transform: (value, item) => {
+          const tienDien = Number(item.TienDien) || 0;
+          const tienNuoc = Number(item.TienNuoc) || 0;
+          return TRANSFORMS.currency(tienDien + tienNuoc);
+        },
+      },
+      {
+        excelKey: "ThangNam",
+        excelLabel: "Tháng/Năm",
+        transform: (value, item) => item.ChiSoDienNuoc?.ThangNam || "",
+      },
+      {
+        excelKey: "NgayTao",
+        excelLabel: "Ngày tạo",
+        transform: TRANSFORMS.date,
+      },
+    ],
+    columnWidths: {
+      STT: COLUMN_WIDTHS.STT,
+      ID: COLUMN_WIDTHS.ID,
+      "Mã sinh viên": COLUMN_WIDTHS.CODE,
+      "Mã chỉ số": COLUMN_WIDTHS.ID,
+      "Số phòng": COLUMN_WIDTHS.CODE,
+      "Số ngày ở": COLUMN_WIDTHS.DEFAULT,
+      "Tiền điện": COLUMN_WIDTHS.AMOUNT,
+      "Tiền nước": COLUMN_WIDTHS.AMOUNT,
+      "Tổng tiền": COLUMN_WIDTHS.AMOUNT,
+      "Tháng/Năm": COLUMN_WIDTHS.DEFAULT,
+      "Ngày tạo": COLUMN_WIDTHS.DATE,
+    },
+  },
 };
