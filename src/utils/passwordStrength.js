@@ -22,10 +22,7 @@ export const validatePassword = (password) => {
     errors.push("Ít nhất 1 chữ số");
   }
 
-  // Optional: Check for special characters (more inclusive pattern)
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~`]/.test(password)) {
-    errors.push("Ít nhất 1 ký tự đặc biệt");
-  }
+
 
   return errors;
 };
@@ -51,12 +48,11 @@ export const getPasswordStrength = (password) => {
   if (password.length >= 8) score += 1;
 
   // Character type scoring
-  if (/[a-zA-Z]/.test(password)) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
   if (/\d/.test(password)) score += 1;
-  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~`]/.test(password)) score += 1;
 
-  // Case mix scoring
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 1;
+
 
   // Return strength classification
   if (score <= 2) {
@@ -105,7 +101,5 @@ export const getPasswordRequirements = (password) => {
     hasLowercase: /[a-z]/.test(password),
     hasUppercase: /[A-Z]/.test(password),
     hasNumber: /\d/.test(password),
-    hasSpecialChar: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?~`]/.test(password),
-    hasMixedCase: /[a-z]/.test(password) && /[A-Z]/.test(password),
   };
 };

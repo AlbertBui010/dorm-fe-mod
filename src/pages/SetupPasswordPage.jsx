@@ -199,8 +199,6 @@ const SetupPasswordPage = () => {
             Bước 3: Tạo mật khẩu để hoàn tất đăng ký
           </p>
         </div>
-
-        {/* Progress indicator */}
         <div className="flex items-center justify-center space-x-4">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
