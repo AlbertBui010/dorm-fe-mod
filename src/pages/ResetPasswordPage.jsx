@@ -4,7 +4,7 @@ import { Key, ArrowLeft, CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-re
 import Button from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { authService } from '../services/api';
-import { validatePassword } from '../utils/passwordStrength';
+import { validatePassword, getPasswordStrength } from '../utils/passwordStrength';
 
 const ResetPasswordPage = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +20,7 @@ const ResetPasswordPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({});
+  const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,21 +43,33 @@ const ResetPasswordPage = () => {
     if (formData.newPassword) {
       const errors = validatePassword(formData.newPassword);
       const isValid = errors.length === 0;
-      
+      const strength = getPasswordStrength(formData.newPassword);
+
       setPasswordStrength({
         isValid,
         errors,
-        message: isValid 
-          ? '✓ Mật khẩu đủ mạnh' 
+        message: isValid
+          ? '✓ Mật khẩu đủ mạnh'
           : errors.join(', '),
-        strength: isValid ? 'strong' : 'weak'
+        strength: strength.strength,
+        label: strength.label,
+        color: strength.color,
+        width: strength.width
       });
     } else {
-      setPasswordStrength({});
+      setPasswordStrength({
+        isValid: false,
+        errors: [],
+        message: '',
+        strength: 0,
+        label: '',
+        color: '',
+        width: '0%'
+      });
     }
   }, [formData.newPassword]);
 
-  const handleInputChange = (e) => {
+    const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -65,32 +78,51 @@ const ResetPasswordPage = () => {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    const validateForm = () => {
+    const newErrors = {};
     
-    // Validation
     if (!formData.email.trim()) {
-      setError('Vui lòng nhập email');
-      return;
+      newErrors.email = 'Vui lòng nhập email';
     }
 
     if (!formData.token.trim()) {
-      setError('Mã xác thực không hợp lệ. Vui lòng thử lại từ email.');
-      return;
+      newErrors.token = 'Mã xác thực không hợp lệ. Vui lòng thử lại từ email.';
     }
 
     if (!formData.newPassword) {
-      setError('Vui lòng nhập mật khẩu mới');
-      return;
+      newErrors.newPassword = 'Vui lòng nhập mật khẩu mới';
+    } else {
+      const passwordErrors = validatePassword(formData.newPassword);
+      if (passwordErrors.length > 0) {
+        newErrors.newPassword = 'Mật khẩu mới không đủ mạnh: ' + passwordErrors.join(', ');
+      }
     }
 
-    if (!passwordStrength.isValid && formData.newPassword) {
-      setError('Mật khẩu mới không đủ mạnh: ' + (passwordStrength.message || 'Vui lòng chọn mật khẩu mạnh hơn.'));
-      return;
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu mới';
+    } else if (formData.newPassword !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Xác nhận mật khẩu không khớp';
     }
+    
+    return newErrors;
+  };
 
-    if (formData.newPassword !== formData.confirmPassword) {
-      setError('Xác nhận mật khẩu không khớp');
+  const isFormValid = () => {
+    return Object.keys(errors).length === 0;
+  };
+
+  // Update errors when form data changes
+  useEffect(() => {
+    const newErrors = validateForm();
+    setErrors(newErrors);
+  }, [formData.email, formData.newPassword, formData.confirmPassword]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const newErrors = validateForm();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -105,15 +137,15 @@ const ResetPasswordPage = () => {
         formData.newPassword,
         formData.confirmPassword
       );
-      
+
       setMessage(result.message);
       setIsSuccess(true);
-      
+
       // Redirect to login after 3 seconds
       setTimeout(() => {
-        navigate('/login', { 
-          state: { 
-            message: 'Mật khẩu đã được reset thành công. Vui lòng đăng nhập với mật khẩu mới.' 
+        navigate('/login', {
+          state: {
+            message: 'Mật khẩu đã được reset thành công. Vui lòng đăng nhập với mật khẩu mới.'
           }
         });
       }, 3000);
@@ -130,9 +162,9 @@ const ResetPasswordPage = () => {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <img 
-                src="/logo/stu-logo.png" 
-                alt="STU Logo" 
+              <img
+                src="/logo/stu-logo.png"
+                alt="STU Logo"
                 className="h-12 w-12 object-contain"
                 onError={(e) => {
                   // Fallback to icon if logo not found
@@ -186,9 +218,9 @@ const ResetPasswordPage = () => {
         {/* Header */}
         <div className="text-center">
           <div className="mx-auto h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-            <img 
-              src="/logo/stu-logo.png" 
-              alt="STU Logo" 
+            <img
+              src="/logo/stu-logo.png"
+              alt="STU Logo"
               className="h-12 w-12 object-contain"
               onError={(e) => {
                 // Fallback to icon if logo not found
@@ -220,10 +252,17 @@ const ResetPasswordPage = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="Nhập email của bạn"
-                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={`block w-full px-3 py-2 border ${errors.email ? 'border-red-300' : 'border-gray-300'
+                    } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                   disabled={isLoading}
                   required
                 />
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               {/* Hidden token field - không hiển thị cho user */}
@@ -245,7 +284,8 @@ const ResetPasswordPage = () => {
                     value={formData.newPassword}
                     onChange={handleInputChange}
                     placeholder="Nhập mật khẩu mới"
-                    className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`block w-full px-3 py-2 pr-10 border ${errors.newPassword ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     disabled={isLoading}
                   />
                   <button
@@ -260,31 +300,32 @@ const ResetPasswordPage = () => {
                     )}
                   </button>
                 </div>
-                
+
                 {/* Password strength indicator */}
                 {formData.newPassword && (
                   <div className="mt-2">
-                    <div className={`text-xs ${passwordStrength.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                      {passwordStrength.message}
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-600">Độ mạnh mật khẩu:</span>
+                      <span className={`text-xs font-medium ${passwordStrength.strength === 1 ? 'text-red-600' :
+                          passwordStrength.strength === 2 ? 'text-yellow-600' : 'text-green-600'
+                        }`}>
+                        {passwordStrength.label}
+                      </span>
                     </div>
-                    {passwordStrength.errors && passwordStrength.errors.length > 0 && (
-                      <ul className="text-xs text-red-600 mt-1 list-disc list-inside">
-                        {passwordStrength.errors.map((error, index) => (
-                          <li key={index}>{error}</li>
-                        ))}
-                      </ul>
-                    )}
-                    <div className="mt-1 bg-gray-200 rounded-full h-1">
-                      <div 
-                        className={`h-1 rounded-full transition-all ${
-                          passwordStrength.strength === 'weak' ? 'bg-red-500 w-1/3' :
-                          passwordStrength.strength === 'medium' ? 'bg-yellow-500 w-2/3' :
-                          passwordStrength.strength === 'strong' ? 'bg-green-500 w-full' :
-                          'bg-gray-300 w-0'
-                        }`}
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                        style={{ width: passwordStrength.width }}
                       />
                     </div>
                   </div>
+                )}
+
+                {errors.newPassword && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.newPassword}
+                  </p>
                 )}
               </div>
 
@@ -300,7 +341,8 @@ const ResetPasswordPage = () => {
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     placeholder="Nhập lại mật khẩu mới"
-                    className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    className={`block w-full px-3 py-2 pr-10 border ${errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+                      } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     disabled={isLoading}
                   />
                   <button
@@ -315,21 +357,60 @@ const ResetPasswordPage = () => {
                     )}
                   </button>
                 </div>
-                
+
                 {/* Password match indicator */}
                 {formData.confirmPassword && (
-                  <div className="mt-2">
-                    <div className={`text-xs ${
-                      formData.newPassword === formData.confirmPassword 
-                        ? 'text-green-600' 
-                        : 'text-red-600'
-                    }`}>
-                      {formData.newPassword === formData.confirmPassword 
-                        ? '✓ Mật khẩu khớp' 
-                        : '✗ Mật khẩu không khớp'}
-                    </div>
+                  <div className="mt-1">
+                    {formData.newPassword === formData.confirmPassword ? (
+                      <p className="text-xs text-green-600 flex items-center">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Mật khẩu khớp
+                      </p>
+                    ) : (
+                      <p className="text-xs text-red-600 flex items-center">
+                        <AlertCircle className="h-3 w-3 mr-1" />
+                        Mật khẩu không khớp
+                      </p>
+                    )}
                   </div>
                 )}
+
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center">
+                    <AlertCircle className="h-4 w-4 mr-1" />
+                    {errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Password requirements */}
+              <div className="bg-gray-50 rounded-md p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2 flex items-center">
+                  <Key className="h-4 w-4 mr-1" />
+                  Yêu cầu mật khẩu
+                </h4>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${formData.newPassword.length >= 6 ? 'bg-green-500' : 'bg-gray-300'
+                      }`}></div>
+                    Ít nhất 6 ký tự
+                  </li>
+                  <li className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/[a-z]/.test(formData.newPassword) ? 'bg-green-500' : 'bg-gray-300'
+                      }`}></div>
+                    Chứa ít nhất 1 chữ thường
+                  </li>
+                  <li className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/[A-Z]/.test(formData.newPassword) ? 'bg-green-500' : 'bg-gray-300'
+                      }`}></div>
+                    Chứa ít nhất 1 chữ hoa
+                  </li>
+                  <li className="flex items-center">
+                    <div className={`w-2 h-2 rounded-full mr-2 ${/\d/.test(formData.newPassword) ? 'bg-green-500' : 'bg-gray-300'
+                      }`}></div>
+                    Chứa ít nhất 1 chữ số
+                  </li>
+                </ul>
               </div>
 
               {/* Error Messages */}
@@ -346,15 +427,7 @@ const ResetPasswordPage = () => {
 
               <Button
                 type="submit"
-                disabled={
-                  isLoading || 
-                  !formData.email.trim() || 
-                  !formData.token.trim() || 
-                  !formData.newPassword || 
-                  !formData.confirmPassword ||
-                  (passwordStrength.isValid === false && formData.newPassword) ||
-                  (formData.newPassword !== formData.confirmPassword)
-                }
+                disabled={isLoading || !isFormValid()}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400"
               >
                 {isLoading ? 'Đang xử lý...' : 'Đặt mật khẩu mới'}
@@ -368,7 +441,7 @@ const ResetPasswordPage = () => {
               >
                 Chưa nhận được email? Gửi lại
               </Link>
-              
+
               <Link
                 to="/login"
                 className="text-sm text-gray-600 hover:text-gray-800 flex items-center justify-center"

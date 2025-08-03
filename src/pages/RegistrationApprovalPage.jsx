@@ -207,6 +207,13 @@ const RegistrationApprovalPage = () => {
   // Table columns
   const columns = [
     {
+      key: "maDangKy",
+      header: "Mã đăng ký",
+      render: (value, row) => (
+        <div className="text-sm text-gray-900">{row.MaDangKy}</div>
+      ),
+    },
+    {
       key: "sinhVien",
       header: "Sinh viên",
       render: (value, row) => (
@@ -479,6 +486,12 @@ const RegistrationApprovalPage = () => {
                 Thông tin sinh viên
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Mã đăng ký:</p>
+                  <p className="font-medium text-gray-900">
+                    {selectedRegistration.MaDangKy}
+                  </p>
+                </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Mã sinh viên:</p>
                   <p className="font-medium text-gray-900">
