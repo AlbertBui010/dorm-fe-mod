@@ -99,9 +99,11 @@ class RegistrationAPI {
   /**
    * Utility: Renew contract (student self-renew)
    */
-  async renewContract(maSinhVien) {
+  async cancelRenewContract(maSinhVien) {
     try {
-      const response = await api.post("/registration/renew", { maSinhVien });
+      const response = await api.post("/registration/cancel-renew", {
+        maSinhVien,
+      });
       return response.data;
     } catch (error) {
       throw this.handleError(error);

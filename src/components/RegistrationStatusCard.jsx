@@ -39,16 +39,25 @@ const RegistrationStatusCard = ({
       return diff <= 7 && diff >= 0 && status.dangKy.TrangThai === "DA_DUYET";
     })();
 
-  const handleRenew = async () => {
+  const handleCancelRenew = async () => {
+    const isConfirmed = window.confirm(
+      `Bạn có chắc chắn muốn HUỶ GIA HẠN hợp đồng?\n\nSau khi huỷ gia hạn:\n- Hợp đồng sẽ kết thúc vào ngày ${formatDate(status.dangKy.NgayKetThucHopDong)}\n- Hệ thống sẽ KHÔNG tự động gia hạn cho kỳ tiếp theo\n- Bạn sẽ phải rời khỏi ký túc xá\n\nVui lòng xác nhận quyết định này.`
+    );
+    
+    if (!isConfirmed) {
+      return;
+    }
+
     setRenewLoading(true);
     try {
-      const result = await registrationApi.renewContract(status.maSinhVien);
+      const result = await registrationApi.cancelRenewContract(status.maSinhVien);
       toast.success(
-        result.message || "Đã gửi yêu cầu gia hạn, vui lòng chờ duyệt!"
+        result.message || "Đã xác nhận huỷ gia hạn hợp đồng!"
       );
       await fetchStatus();
+      window.location.reload();
     } catch (err) {
-      toast.error(err.message || "Gia hạn thất bại");
+      toast.error(err.message || "Huỷ gia hạn thất bại");
     } finally {
       setRenewLoading(false);
     }
@@ -242,24 +251,47 @@ const RegistrationStatusCard = ({
       <CardContent className="space-y-4">
         {/* Expiry Warning & Renew Button */}
         {isExpiringSoon && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 flex items-center justify-between mb-2">
-            <div className="flex items-center">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-2">
+            <div className="flex items-center mb-3">
               <AlertCircle className="h-6 w-6 text-yellow-500 mr-2" />
               <span className="text-yellow-800 font-medium">
                 Hợp đồng của bạn sẽ hết hạn vào ngày{" "}
-                <b>{formatDate(status.dangKy.NgayKetThucHopDong)}</b>. Vui lòng
-                gia hạn để tiếp tục ở lại.
+                <b>{formatDate(status.dangKy.NgayKetThucHopDong)}</b>. 
               </span>
             </div>
-            {showActions && (
-              <Button
-                onClick={handleRenew}
-                loading={renewLoading}
-                disabled={renewLoading}
-                className="ml-4 bg-yellow-500 hover:bg-yellow-600 text-white"
-              >
-                Gia hạn hợp đồng
-              </Button>
+
+            {/* Kiểm tra trạng thái nguyện vọng */}
+            {status.dangKy.NguyenVong === "KHONG_GIA_HAN" ? (
+              <div className="bg-red-50 border border-red-200 rounded p-3">
+                <div className="flex items-center">
+                  <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <span className="text-red-800 font-medium">
+                    Bạn đã chọn không gia hạn hợp đồng
+                  </span>
+                </div>
+                <p className="text-red-700 text-sm mt-1">
+                  Hợp đồng sẽ kết thúc vào ngày hết hạn.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-yellow-800 mb-3">
+                  Hệ thống sẽ tự động gia hạn vào ngày kết thúc hợp đồng.
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    Nếu bạn muốn huỷ gia hạn, hãy nhấn nút bên cạnh để xác nhận.
+                  </p>
+                  <Button
+                    onClick={handleCancelRenew}
+                    loading={renewLoading}
+                    disabled={renewLoading}
+                    className="ml-4 bg-red-200 hover:bg-red-500 text-white"
+                  >
+                    Huỷ gia hạn
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         )}
