@@ -66,6 +66,16 @@ export const authService = {
     }
   },
 
+  // Update profile
+  updateProfile: async (profileData) => {
+    try {
+      const response = await api.put("/auth/profile", profileData);
+      return response.data;
+    } catch (error) {
+      throw authService.handleError(error);
+    }
+  },
+
   // Set password (for students)
   setPassword: async (password) => {
     try {

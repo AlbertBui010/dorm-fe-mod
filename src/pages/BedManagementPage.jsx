@@ -8,6 +8,7 @@ import {
   UserCheck,
   MapPin,
   Building,
+  Edit2,
 } from "lucide-react";
 import Layout from "../components/Layout";
 import Card from "../components/ui/Card";
@@ -35,6 +36,7 @@ const BedManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [activityStatusFilter, setActivityStatusFilter] = useState("");
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -79,7 +81,7 @@ const BedManagementPage = () => {
   useEffect(() => {
     fetchBeds();
     fetchRooms();
-  }, [currentPage, searchTerm, selectedRoom, statusFilter]);
+  }, [currentPage, searchTerm, selectedRoom, statusFilter, activityStatusFilter]);
 
   const fetchBeds = async () => {
     try {
@@ -93,17 +95,35 @@ const BedManagementPage = () => {
       const allBedsResponse = await bedService.getAllBeds(allBedsParams);
       setAllBeds(allBedsResponse.data || []);
 
-      // Fetch filtered beds for display
+      // Fetch all beds first, then apply client-side filtering
       const params = {
         page: currentPage,
         limit: 10,
         ...(searchTerm && { search: searchTerm }),
         ...(selectedRoom && { maPhong: selectedRoom }),
-        ...(statusFilter && { trangThai: statusFilter }),
       };
 
       const response = await bedService.getAllBeds(params);
-      setBeds(response.data || []);
+      let filteredBeds = response.data || [];
+
+      // Apply client-side filtering for status filters
+      if (statusFilter) {
+        if (statusFilter === 'available') {
+          filteredBeds = filteredBeds.filter(bed => !bed.DaCoNguoi);
+        } else if (statusFilter === 'occupied') {
+          filteredBeds = filteredBeds.filter(bed => bed.DaCoNguoi);
+        }
+      }
+
+      // Apply client-side filtering for activity status
+      if (activityStatusFilter) {
+        filteredBeds = filteredBeds.filter(bed => {
+          const bedStatus = bed.TrangThai || 'HOAT_DONG';
+          return bedStatus === activityStatusFilter;
+        });
+      }
+
+      setBeds(filteredBeds);
 
       if (response.pagination) {
         setTotalPages(response.pagination.totalPages);
@@ -284,7 +304,7 @@ const BedManagementPage = () => {
     },
     {
       key: "DaCoNguoi",
-      title: "Trạng Thái",
+      title: "Trạng Thái Sử Dụng",
       render: (value, row) => (
         <div>
           <span
@@ -303,34 +323,41 @@ const BedManagementPage = () => {
       ),
     },
     {
+      key: "TrangThai",
+      title: "Trạng Thái Hoạt Động",
+      render: (value, row) => {
+        const status = value || "HOAT_DONG";
+        let colorClass = "bg-green-100 text-green-800";
+        let statusText = "Hoạt động";
+        
+        if (status === "BAO_TRI") {
+          colorClass = "bg-yellow-100 text-yellow-800";
+          statusText = "Bảo trì";
+        } else if (status === "NGUNG_HOAT_DONG") {
+          colorClass = "bg-red-100 text-red-800";
+          statusText = "Ngưng hoạt động";
+        }
+        
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+            {statusText}
+          </span>
+        );
+      },
+    },
+    {
       key: "actions",
       title: "Thao Tác",
       render: (value, row) => (
-        <div className="flex space-x-2">
+        <div className="flex items-center gap-2">
           <Button
+            variant="ghost"
             size="sm"
-            variant="outline"
             onClick={() => openEditModal(row)}
+            className="text-yellow-600 hover:text-yellow-800"
           >
-            Sửa
+            <Edit2 className="w-4 h-4" />
           </Button>
-          {!row.DaCoNguoi ? (
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={() => openAssignModal(row)}
-            >
-              Phân bổ SV
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => handleRemoveStudent(row.MaGiuong)}
-            >
-              Gỡ SV
-            </Button>
-          )}
         </div>
       ),
     },
@@ -474,9 +501,20 @@ const BedManagementPage = () => {
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
-                <option value="">Tất cả trạng thái</option>
+                <option value="">Tất cả trạng thái sử dụng</option>
                 <option value="available">Giường trống</option>
                 <option value="occupied">Đã có người</option>
+              </select>
+
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={activityStatusFilter}
+                onChange={(e) => setActivityStatusFilter(e.target.value)}
+              >
+                <option value="">Tất cả trạng thái hoạt động</option>
+                <option value="HOAT_DONG">Hoạt động</option>
+                <option value="BAO_TRI">Bảo trì</option>
+                <option value="NGUNG_HOAT_DONG">Ngưng hoạt động</option>
               </select>
             </div>
 
@@ -513,6 +551,7 @@ const BedManagementPage = () => {
                 setSearchTerm("");
                 setSelectedRoom("");
                 setStatusFilter("");
+                setActivityStatusFilter("");
                 setCurrentPage(1);
               }}
               className="flex items-center gap-2"

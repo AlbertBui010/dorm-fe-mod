@@ -7,6 +7,7 @@ import {
 import { Toaster } from "react-hot-toast";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
+import ProfilePage from "./pages/ProfilePage";
 import ApiTestPage from "./pages/ApiTestPage";
 import EmployeeManagementPage from "./pages/EmployeeManagementPage";
 import RoomManagementPage from "./pages/RoomManagementPage";
@@ -201,6 +202,15 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

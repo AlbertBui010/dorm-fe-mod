@@ -210,20 +210,23 @@ const ChiTietDienNuocPage = () => {
               Quản lý và tạo hóa đơn tiền điện nước cho sinh viên theo từng tháng
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={handleExportExcel}
-              disabled={loading || data.length === 0}
-              className="flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Export Excel
-            </Button>
-          </div>
+
         </div>
 
         {/* Filters */}
         <Card className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Bộ lọc tìm kiếm</h3>
+            <Button
+              onClick={handleExportExcel}
+              variant="outline"
+              className="text-green-600 hover:text-green-800 border-green-300 hover:border-green-400"
+              disabled={loading || data.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Xuất Excel
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {isAdmin && (
               <div className="relative">

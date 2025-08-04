@@ -12,9 +12,12 @@ import {
   Phone,
   Calendar,
   User,
+  Download,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
 import { studentService } from "../services/api";
 import { roomService } from "../services/api/roomService";
+import { bedService } from "../services/api/bedService";
 import Layout from "../components/Layout";
 import Button from "../components/ui/Button";
 import Card from "../components/ui/Card";
@@ -274,6 +277,105 @@ const StudentManagementPage = () => {
     resetForm();
   };
 
+  // Helper function to get student's bed and room info
+  const getStudentBedInfo = async (maSinhVien) => {
+    try {
+      // Lấy tất cả giường để tìm giường của sinh viên
+      const bedsResponse = await bedService.getAllBeds({ limit: 1000 });
+      const beds = bedsResponse.data || [];
+      
+      // Tìm giường của sinh viên này
+      const studentBed = beds.find(bed => 
+        bed.MaSinhVienChiEm === maSinhVien || 
+        bed.maSinhVienChiEm === maSinhVien ||
+        bed.MaSinhVien === maSinhVien
+      );
+      
+      if (studentBed) {
+        // Lấy thông tin phòng
+        const roomsResponse = await roomService.getAll({ limit: 1000 });
+        const rooms = roomsResponse.data || [];
+        const room = rooms.find(r => r.MaPhong === studentBed.MaPhong);
+        
+        return {
+          soPhong: room?.SoPhong || '',
+          tenGiuong: studentBed.SoGiuong || studentBed.TenGiuong || ''
+        };
+      }
+      
+      return { soPhong: '', tenGiuong: '' };
+    } catch (error) {
+      console.error('Lỗi khi lấy thông tin giường:', error);
+      return { soPhong: '', tenGiuong: '' };
+    }
+  };
+
+  // Export to Excel function
+  const exportToExcel = async () => {
+    try {
+      toast.loading('Đang chuẩn bị dữ liệu xuất Excel...');
+      
+      // Lấy thông tin giường và phòng cho tất cả sinh viên
+      const exportData = await Promise.all(
+        students.map(async (student, index) => {
+          const bedInfo = await getStudentBedInfo(student.MaSinhVien);
+          
+          return {
+            'STT': index + 1,
+            'Mã sinh viên': student.MaSinhVien,
+            'Họ tên': student.HoTen,
+            'Ngày sinh': student.NgaySinh ? new Date(student.NgaySinh).toLocaleDateString('vi-VN') : '',
+            'Giới tính': student.GioiTinh,
+            'Số điện thoại': student.SoDienThoai || '',
+            'Email': student.Email || '',
+            'Email đã xác thực': student.EmailDaXacThuc ? 'Đã xác thực' : 'Chưa xác thực',
+            'Trạng thái': STUDENT_STATUS_FE[student.TrangThai]?.value || student.TrangThai,
+            'Phòng': bedInfo.soPhong,
+            'Giường': bedInfo.tenGiuong,
+          };
+        })
+      );
+
+      // Tạo workbook và worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(exportData);
+
+      // Thiết lập độ rộng cột
+      const colWidths = [
+        { wch: 5 },   // STT
+        { wch: 15 },  // Mã sinh viên
+        { wch: 25 },  // Họ tên
+        { wch: 12 },  // Ngày sinh
+        { wch: 10 },  // Giới tính
+        { wch: 15 },  // Số điện thoại
+        { wch: 30 },  // Email
+        { wch: 15 },  // Email đã xác thực
+        { wch: 20 },  // Trạng thái
+        { wch: 10 },  // Phòng
+        { wch: 10 },  // Giường
+      ];
+      ws['!cols'] = colWidths;
+
+      // Thêm worksheet vào workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Danh sách sinh viên');
+
+      // Tạo tên file với timestamp
+      const now = new Date();
+      const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+      const fileName = `danh-sach-sinh-vien-${timestamp}.xlsx`;
+
+      // Xuất file
+      XLSX.writeFile(wb, fileName);
+      
+      toast.dismiss(); // Dismiss loading toast
+      toast.success(`Đã xuất danh sách sinh viên ra file ${fileName}`);
+    } catch (error) {
+      console.error('Lỗi khi xuất Excel:', error);
+      toast.dismiss(); // Dismiss loading toast
+      toast.error('Có lỗi xảy ra khi xuất file Excel');
+    }
+  };
+
   // Table columns
   const columns = [
     {
@@ -502,6 +604,18 @@ const StudentManagementPage = () => {
 
         {/* Filters */}
         <Card className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Bộ lọc tìm kiếm</h3>
+            <Button
+              onClick={exportToExcel}
+              variant="outline"
+              className="text-green-600 hover:text-green-800 border-green-300 hover:border-green-400"
+              disabled={students.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Xuất Excel
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
