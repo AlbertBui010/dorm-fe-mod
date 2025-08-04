@@ -83,31 +83,33 @@ const DashboardPage = () => {
         employeesResponse,
         paymentStats
       ] = await Promise.all([
-        roomService.getAll({ limit: 1000 }).catch(() => ({ data: [], pagination: { total: 0 } })),
-        bedService.getBedStatistics().catch(() => ({ data: { TongSoGiuong: 0, SoGiuongDangO: 0, SoGiuongTrong: 0 } })),
-        studentService.getAll({ limit: 1 }).catch(() => ({ pagination: { total: 0 } })),
+        roomService.getAll({ limit: 1000 }).catch(() => ({ success: false, data: [], pagination: { totalItems: 0 } })),
+        bedService.getBedStatistics().catch(() => ({ success: false, data: { TongSoGiuong: 0, SoGiuongDangO: 0, SoGiuongTrong: 0 } })),
+        studentService.getAll({ limit: 1 }).catch(() => ({ success: false, pagination: { totalItems: 0 } })),
         user?.VaiTro === "QuanTriVien" 
-          ? employeeService.getAll({ limit: 1 }).catch(() => ({ pagination: { total: 0 } }))
-          : Promise.resolve({ pagination: { total: 0 } }),
+          ? employeeService.getAll({ limit: 1 }).catch(() => ({ success: false, pagination: { totalItems: 0 } }))
+          : Promise.resolve({ success: false, pagination: { totalItems: 0 } }),
         paymentService.getAdminStats().catch(() => ({ 
-          data: { 
+          success: false,
+          data: {
             totals: { totalPayments: 0 }, 
             totalPending: 0, 
             totalPaid: 0, 
-            totalOverdue: 0 
-          } 
+            totalOverdue: 0,
+            totalAmount: 0
+          }
         })),
       ]);
 
       // Process room statistics
-      const rooms = roomsResponse.data || [];
-      const totalRooms = roomsResponse.pagination?.total || 0;
+      const rooms = roomsResponse.success ? (roomsResponse.data || []) : [];
+      const totalRooms = roomsResponse.success ? (roomsResponse.pagination?.totalItems || 0) : 0;
       
       const emptyRooms = rooms.filter((r) => {
         const occupiedBeds = r.Giuongs
           ? r.Giuongs.filter((g) => g.DaCoNguoi).length
           : r?.SoLuongHienTai || 0;
-        return occupiedBeds === 0 && (r?.TrangThai || "Hoạt động") === "Hoạt động";
+        return occupiedBeds === 0 && (r?.TrangThai || "HOAT_DONG") === "HOAT_DONG";
       }).length;
 
       const fullRooms = rooms.filter((r) => {
@@ -119,16 +121,17 @@ const DashboardPage = () => {
       }).length;
 
       // Process bed statistics
-      const totalBeds = bedStats.data?.TongSoGiuong || 0;
-      const occupiedBeds = bedStats.data?.SoGiuongDangO || 0;
-      const availableBeds = bedStats.data?.SoGiuongTrong || 0;
+      const totalBeds = bedStats.success ? (bedStats.data?.TongSoGiuong || 0) : 0;
+      const occupiedBeds = bedStats.success ? (bedStats.data?.SoGiuongDangO || 0) : 0;
+      const availableBeds = bedStats.success ? (bedStats.data?.SoGiuongTrong || 0) : 0;
       const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
       // Process payment statistics
-      const totalPayments = paymentStats.data?.totals?.totalPayments || 0;
-      const pendingPayments = paymentStats.data?.totalPending || 0;
-      const completedPayments = paymentStats.data?.totalPaid || 0;
-      const overduePayments = paymentStats.data?.totalOverdue || 0;
+      const totalPayments = paymentStats.success ? (paymentStats.data?.totals?.totalPayments || 0) : 0;
+      const pendingPayments = paymentStats.success ? (paymentStats.data?.totalPending || 0) : 0;
+      const completedPayments = paymentStats.success ? (paymentStats.data?.totalPaid || 0) : 0;
+      const overduePayments = paymentStats.success ? (paymentStats.data?.totalOverdue || 0) : 0;
+      const totalRevenue = paymentStats.success ? (paymentStats.data?.totalAmount || 0) : 0;
 
       setStats({
         // Room stats
@@ -143,15 +146,15 @@ const DashboardPage = () => {
         occupancyRate,
         
         // Student & Employee stats
-        totalStudents: studentsResponse.pagination?.total || 0,
-        totalEmployees: employeesResponse.pagination?.total || 0,
+        totalStudents: studentsResponse.success ? (studentsResponse.pagination?.totalItems || 0) : 0,
+        totalEmployees: employeesResponse.success ? (employeesResponse.pagination?.totalItems || 0) : 0,
         
         // Payment stats
         totalPayments,
         pendingPayments,
         completedPayments,
         overduePayments,
-        totalRevenue: paymentStats.data?.totals?.totalRevenue || 0,
+        totalRevenue,
       });
     } catch (error) {
       console.error("Error loading dashboard stats:", error);

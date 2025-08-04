@@ -270,24 +270,26 @@ const ElectricWaterIndexManagementPage = () => {
               Quản lý chỉ số điện, nước cho từng phòng trong ký túc xá
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button 
-              variant="outline" 
-              onClick={handleExportExcel}
-              disabled={loading}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Excel
-            </Button>
-            <Button onClick={handleOpenAdd}>
-              <Plus className="w-4 h-4 mr-2" />
-              Thêm chỉ số mới
-            </Button>
-          </div>
+          <Button onClick={handleOpenAdd}>
+            <Plus className="w-4 h-4 mr-2" />
+            Thêm chỉ số mới
+          </Button>
         </div>
 
-        {/* Search/filter */}
+        {/* Filters */}
         <Card className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Bộ lọc tìm kiếm</h3>
+            <Button
+              onClick={handleExportExcel}
+              variant="outline"
+              className="text-green-600 hover:text-green-800 border-green-300 hover:border-green-400"
+              disabled={loading || data.length === 0}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Xuất Excel
+            </Button>
+          </div>
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:w-80">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
