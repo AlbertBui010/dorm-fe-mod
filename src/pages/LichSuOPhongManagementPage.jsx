@@ -33,7 +33,7 @@ const columns = [
     key: "NgayKetThuc",
     render: (value) => (value ? formatDateTimeVN(true, value) : "Chưa có"),
   },
-  { title: "Người Tạo", key: "NguoiTao" },
+  // { title: "Người Tạo", key: "NguoiTao" },
   {
     title: "Ngày Tạo",
     key: "NgayTao",

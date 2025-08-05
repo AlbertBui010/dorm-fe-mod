@@ -74,19 +74,33 @@ const DonGiaDienNuocManagementPage = () => {
     {
       header: "Người tạo",
       key: "NguoiTao",
+      render: (value, row) => {
+      // Hiển thị tên người tạo từ relationship
+      if (row.NguoiTaoInfo && row.NguoiTaoInfo.HoTen) {
+        return (
+          <div>
+            <div className="font-medium">{row.NguoiTaoInfo.HoTen}</div>
+            {/* <div className="text-sm text-gray-500">
+              {row.NguoiTaoInfo.VaiTro || ''}
+            </div> */}
+          </div>
+        );
+      }
+      return <span className="text-gray-400">Chưa xác định</span>;
     },
-    {
-      header: "Hành động",
-      key: "actions",
-      width: "200px",
-      render: (_, row) => (
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={() => handleEdit(row)}>
-            Sửa
-          </Button>
-        </div>
-      ),
     },
+    // {
+    //   header: "Hành động",
+    //   key: "actions",
+    //   width: "200px",
+    //   render: (_, row) => (
+    //     <div className="flex space-x-2">
+    //       <Button variant="outline" size="sm" onClick={() => handleEdit(row)}>
+    //         Sửa
+    //       </Button>
+    //     </div>
+    //   ),
+    // },
   ];
 
   useEffect(() => {

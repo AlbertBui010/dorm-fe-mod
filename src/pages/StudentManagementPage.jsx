@@ -537,10 +537,10 @@ const StudentManagementPage = () => {
               Quản lý thông tin sinh viên trong hệ thống
             </p>
           </div>
-          <Button onClick={openCreateModal}>
+          {/* <Button onClick={openCreateModal}>
             <Plus className="w-4 h-4 mr-2" />
             Thêm sinh viên
-          </Button>
+          </Button> */}
         </div>
 
         {/* Statistics */}
@@ -900,7 +900,7 @@ const StudentManagementPage = () => {
                 />
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Giới tính
                 </label>
@@ -914,7 +914,7 @@ const StudentManagementPage = () => {
                   <option value="Nữ">Nữ</option>
                   <option value="Khác">Khác</option>
                 </select>
-              </div>
+              </div> */}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

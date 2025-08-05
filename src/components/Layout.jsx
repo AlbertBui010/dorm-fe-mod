@@ -172,7 +172,7 @@ const Layout = ({ children, navigation: navigationProp }) => {
       show: user?.VaiTro === "SinhVien",
     },
     {
-      name: "Lịch sử đăng ký phòng",
+      name: "Lịch sử ở phòng",
       href: "/lich-su-o-phong",
       icon: History,
       show: user?.VaiTro !== "SinhVien",

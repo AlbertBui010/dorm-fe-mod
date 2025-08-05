@@ -259,9 +259,6 @@ const DashboardPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Sinh viên</p>
                 <p className="text-2xl font-bold text-green-600">{stats.totalStudents}</p>
-                <p className="text-xs text-gray-500">
-                  Tỷ lệ sử dụng: {stats.occupancyRate}%
-                </p>
               </div>
               <Users className="w-8 h-8 text-green-500" />
             </div>
